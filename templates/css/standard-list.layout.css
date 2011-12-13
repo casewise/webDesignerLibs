@@ -1,0 +1,63 @@
+li.property-name-value{
+	/*font-size:2.0em;*/
+}
+
+ul.properties-zone{
+	margin:0px;
+	padding:0px;
+}
+
+li.property-box{
+	list-style:none;
+	display:inline-block;
+	vertical-align:top;
+}
+
+ul.property-details li{
+	list-style:none;
+	text-align:center;
+	width:200px;
+	margin:0px;
+	padding:5px;
+	border:1px solid #DAE8C4;
+}
+
+ul.property-details{
+	margin:5px;
+	padding:0px;
+}
+
+
+li.property-title, li.association-title-box{
+	background-color:#DAE8C4;
+	text-align:center;
+	list-style:none;
+}
+
+ul.property-description-details li{
+	width:600px;
+}
+
+li.association-title-box, li.association-values-box{
+		border:1px solid #DAE8C4;
+}
+
+ul.association-link-box{
+	margin-left:20px;
+	padding:5px;
+}
+
+ul.association-box{
+		margin:5px;
+		padding:0px;
+}
+
+li.association-box, li.associations-box{
+	list-style:none;
+}
+
+
+ul.associations-zone{
+	margin:0px;
+	padding:0px;
+}

@@ -1,0 +1,21 @@
+ul.properties-zone{
+	float:left;
+}
+
+li.property-box{
+	float:left;
+}
+
+li.associations-box{
+	float:left;
+	width:100%;
+}
+
+li.association-box{
+	width:100%;
+}
+
+ul.associations-zone{
+	width:100%;	
+}
+

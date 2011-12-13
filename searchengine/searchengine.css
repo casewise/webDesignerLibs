@@ -1,0 +1,23 @@
+span.webindex_item_found{
+	background-color:#3163c8;
+
+	/*border:1px solid #FFF;*/
+	border-radius:10px;
+	-moz-border-radius:10px;	
+	padding:2px;
+	color:white;		
+}
+
+
+.search_zone_area{
+	width:100%;
+	text-align:center;
+	margin:0px;
+	margin-top:10px;
+	margin-bottom:10px;
+}
+
+.cw_search_suggest {
+	width:400px;
+	height:30px;
+}

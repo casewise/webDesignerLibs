@@ -1,0 +1,68 @@
+table.ma_flux{
+	width:100%;
+	font-family:Calibri;
+/*	border:1px solid black;*/
+}
+
+table.ma_flux td{
+	text-align:center;
+	padding:15px;
+	padding-top:20px;
+/*	border:1px solid black;*/
+}
+
+td.flux-arrow{
+	width:0%;
+	padding:0px;
+	border:0px solid blue;
+	display:none;
+}
+
+td.out-ma, td.main-ma{
+	width:15%;
+	border:1px solid orange;
+	background-color:orange;
+	padding-top:25px;
+}
+
+td.main-ma{
+	vertical-align:top;
+}
+
+/*
+td.main-ma{
+	width:20%;
+	vertical-align:middle;
+	border:1px solid orange;
+	background-color:orange;
+}
+*/
+
+td.flux-name{
+	width:30%;
+/*	border:1px solid black;*/
+	font-size:0.8em;
+	vertical-align:middle;
+	background-image: url('images/fond_flux.png');
+	background-size:100% 100%;
+}
+
+
+td.empty{
+	border:none !important;	
+	background:none !important;
+}
+
+
+ul.message-in-flux{
+	margin:0px;
+	padding:10px;
+}
+
+li.message-in-flux{
+	list-style:none;
+	margin:5px;
+	padding:5px;
+	display:inline-block;
+	border:1px solid #333;
+}
