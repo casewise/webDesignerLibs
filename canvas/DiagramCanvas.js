@@ -19,18 +19,21 @@ var DiagramCanvas = function(diagramID, jsonDiagramFile, canvasID){
 	this.ctx.canvas.height = $(this.canvas).height();
 
 
-	$("body").append('<div id="' +tooltipId + '">' + diagramID + '</div>');
 	var tooltipId = "tooltip-" + this.canvasID;
+	$("body").append('<div id="' +tooltipId + '">' + diagramID + '</div>');
+	$("body").append('<div id="debugger" style="position:absolute;top:0px;left:0px;background-color:#eee">debugger</div>')
+	
 	this.tooltip = $('#' + tooltipId);
 	this.tooltip.css('position', 'absolute');
 	this.tooltip.css('display', 'none');
 	this.tooltip.css('cursor', 'help');
 
-	this.camera = new DiagramCamera(this.canvas, this.tooltip);
+	this.camera = new CanvasCamera(this.canvas);
 
 
-	
-
+	$(this.canvas).mousemove(function(e){
+		this.mouseMove(e);
+	}.bind(this));
 
 	this.tick();
 }
@@ -38,11 +41,13 @@ var DiagramCanvas = function(diagramID, jsonDiagramFile, canvasID){
 
 
 DiagramCanvas.prototype.mouseMove = function(e) {
-		//console.log('move');
+		this.tooltip.css('display', 'none');
+		this.tooltip.css('cursor', 'default');
+		this.tooltip.html("");
 	_.each(this.diagramShapes, function(shape){
-		if (pointInBox(this.canvasMousePosition, shape.shape) == true){
-			console.log('inside');
-			this.tooltip.html(this.canvasID + ", " + shape.shape.link + ": " + this.canvasMousePosition.x + ', ' + this.canvasMousePosition.y);
+		if (pointInBox(this.camera.scaledCanvasMousePosition, shape.shape) == true){
+			//console.log('inside', shape.shape);
+			this.tooltip.html(this.canvasID + ", " + shape.shape.link + ": " + this.camera.canvasMousePosition.x + ', ' + this.camera.canvasMousePosition.y);
 			this.tooltip.css('cursor', 'help');
 			this.tooltip.css('display', 'block');
 			this.tooltip.css('left', e.pageX + 5);
@@ -55,9 +60,10 @@ DiagramCanvas.prototype.mouseMove = function(e) {
 
 DiagramCanvas.prototype.tick = function() {
 		requestAnimFrame(this.tick.bind(this));
-		this.camera.update(this.canvas);
+		this.camera.update();
+		this.camera.debug();
+		this.camera.clearContext(this.ctx);
 
-		this.ctx.clearRect(0, 0, this.camera.canvasScaledSize.x, this.camera.canvasScaledSize.y);
 		this.ctx.save();	
 		this.camera.transform(this.ctx);
 

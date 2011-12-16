@@ -56,6 +56,29 @@ function isUnderIE9(){
 	return false;
 }
 
+function getCSSClassesDependingOnChildren(_hasChildrenCondition, _nodeName, _isAccordion)
+{
+	var _liNameStyle = ''
+  var _divNameStyle = ''
+    _liNameStyle = _nodeName + ' ' + _nodeName + '-has-children has-children';
+    _divNameStyle = _nodeName + ' ' + _nodeName + '-has-children has-children';
+
+  
+  if (_hasChildrenCondition) {
+    _liNameStyle = _nodeName + ' ' + _nodeName + '-has-children has-children';
+    _divNameStyle = _nodeName + ' ' + _nodeName + '-has-children has-children';
+  } else {
+	    _liNameStyle =  _nodeName + ' ' + _nodeName + '-no-children no-children';
+	    _divNameStyle =  _nodeName + ' ' + _nodeName + '-no-children no-children';  		  		
+  	if (_isAccordion){
+	    _liNameStyle += ' ' + fakeAccordionLi;
+	    _divNameStyle += ' ' + fakeAccordionDiv;  		
+  	}
+  }
+  
+  return {'liNameStyle' : _liNameStyle, 'divNameStyle' : _divNameStyle};
+}
+
 
 function setToolTipsOnTitles(){
 	$('.tooltip-me').mouseover(function(){
