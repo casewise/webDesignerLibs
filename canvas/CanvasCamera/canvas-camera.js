@@ -47,7 +47,7 @@ CanvasCamera.prototype.debug = function() {
 	output.push("mousePosition:", this.mousePosition.toString(), ', <br/>');
 	output.push("canvasmousepos:", this.canvasMousePosition.x, ",", this.canvasMousePosition.y, '<br/>'); 
 	output.push("mouse%pos:", this.mousePourcentagePosition.x, ",", this.mousePourcentagePosition.y,'<br/>');
-	output.push("scaledmouse%pos:", this.newMousePosition.x, ",", this.newMousePosition.y,'<br/>');
+	output.push("scaledmouse%pos:", this.scaledCanvasMousePosition.x, ",", this.scaledCanvasMousePosition.y,'<br/>');
 	output.push("scale:", this.scale, ', ' + 1 / this.scale +'<br/>');
 	output.push("canvasScaledSize:", this.canvasScaledSize.toString(), ', <br/>');
 	output.push("focusMouseTranslate:", this.focusMouseTranslate.toString(), ', <br/>');
@@ -83,7 +83,7 @@ CanvasCamera.prototype.focusOnMouseAfterMouseWheel = function() {
 	);
 	*/
 
-	this.focusMouseTranslate.set(1 / this.scale * this.mousePosition.x - this.mousePosition.x, 1 / this.scale * this.mousePosition.x - this.mousePosition.y);
+	//this.focusMouseTranslate.set(1 / this.scale * this.mousePosition.x - this.mousePosition.x, 1 / this.scale * this.mousePosition.x - this.mousePosition.y);
 	//console.log("focus", this.focusMouseTranslate);
 	//this.translate.add(this.focusMouseTranslate);
 	//this.focusMouseTranslate.inverse();
@@ -96,7 +96,7 @@ CanvasCamera.prototype.focusOnMouseAfterMouseWheel = function() {
 
 CanvasCamera.prototype.mouseWheel = function(e, delta) {
 	var scaleNum = 1;
-	if (delta < 0) {
+	if (delta > 0) {
 		setIntervalX(function(){
 			this.scaleUsingFactor(-1);
 		}.bind(this), 50, scaleNum);
@@ -117,7 +117,7 @@ CanvasCamera.prototype.transform = function(ctx) {
 	ctx.translate(this.translate.x, this.translate.y);
 	ctx.scale(1 / this.scale, 1 / this.scale);
 	//ctx.translate(this.translate.x, this.translate.y);
-	ctx.translate(this.focusMouseTranslate.x, this.focusMouseTranslate.y);
+	//ctx.translate(this.focusMouseTranslate.x, this.focusMouseTranslate.y);
 	//this.focusMouseTranslate.reset();
 
 };
@@ -141,7 +141,7 @@ CanvasCamera.prototype.mouseMove = function(e) {
   if (this.mouseISDown){
 		translate.set(this.canvasMousePosition.x - this.saveMouseDown.x, this.canvasMousePosition.y - this.saveMouseDown.y);
 		this.translate.add(translate);
-  }
+  }  
 };
 
 CanvasCamera.prototype.updateScaledSize = function() {
@@ -153,10 +153,10 @@ CanvasCamera.prototype.updateScaledSize = function() {
 
 CanvasCamera.prototype.update = function() {
 	this.updateScaledSize();
-	  this.scaledCanvasMousePosition = {
-	  	"x" : (this.canvasMousePosition.x + this.translate.x) * 1 / this.scale,
-	  	"y" : (this.canvasMousePosition.y + this.translate.y) * 1 / this.scale
-	  };		
+  this.scaledCanvasMousePosition = {
+  	"x" : (this.canvasMousePosition.x) * this.scale,
+  	"y" : (this.canvasMousePosition.y) * this.scale
+  };
 };
 
 function setIntervalX(callback, delay, repetitions) {

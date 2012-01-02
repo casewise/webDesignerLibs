@@ -41,95 +41,51 @@ function matchAttribute(_item_data, attributeValue, shouldMatch)
 } 
 
 
-function searchValueRec(_input_value, _item, searchItemsRequirements, clean) 
-{                //return true; 
-                var global_found = false; 
-                var found = false; 
-                //console.log('searching in ' ); 
+function searchValueRec(_input_value, _item, searchItem){
 
-                $.each(_item[searchItemsRequirements.id], function(i, element){ 
-                        found = false; 
-                        $.each(searchItemsRequirements.properties, function(propertyKey, property) { 
-                                var res = matchAttribute(element, property, _input_value); 
-                                if (res[1] == true) { 
-                                        found = res[1]; 
-                                } 
-                                element = res[0];
-                                
-                        }); 
-                        
-                        if (searchItemsRequirements != null && searchItemsRequirements.children.length > 0) 
-                        {                                 
-                                $.each(searchItemsRequirements.children, function(childKey, child) { 
-                                        var resRec = searchValueRec(_input_value, element, child, clean); 
-                                        if (resRec == true) 
-                                        { 
-                                                found = true; 
-                                        } 
-                                        else 
-                                        { 
-                                                if (clean){ 
-                                                        //delete _item[searchItemsRequirements.id][childKey]; 
-                                                } 
-                                        } 
-                                });                         
-                        } 
-                        
-                        if (found == false) 
-                        { 
-                                if (clean){ 
-                                        _item[searchItemsRequirements.id].splice(i, 1);
-                                } 
-                        } 
-                        else 
-                        { 
-                                global_found = true; 
-                        }                         
-                }); 
-                return global_found; 
+  var foundItems = [];
+  // pour les elements à rechercher
+  
+  $.each(_item[searchItem.id], function(i, element){
+    var childrenCount = 0;
+    // pour chaque propriété
+    $.each(searchItem.properties, function(propertyKey, property) {
+      var res = matchAttribute(element, property, _input_value); 
+      if (res[1] == true) {
+        childrenCount = 1;          
+      }
+    });
+    if (searchItem != null && searchItem.children.length > 0) {                                 
+      $.each(searchItem.children, function(childKey, child) { 
+        element[child.id] = searchValueRec(_input_value, element, child);                                          
+        childrenCount += element[child.id].length;
+      });                         
+    }
+    if (childrenCount > 0){
+      foundItems.push(element);  
+    }    
+  });
+  return foundItems;
+} 
+
+
+function searchValueInAttributes(_input_value, _item_dataInput, searchEngine, output) { 
+  if (_item_dataInput == null) {return;} 
+  var _item_data = jQuery.extend(true, {}, _item_dataInput); 
+  var _regexp = new RegExp('(?![^&;]+;)(?!<[^<>]*)(' + _input_value + ')(?![^<>]*>)(?![^&;]+;)', 'gi'); 
+  
+  var foundItems = {};
+
+  // pour chaque requirement
+  $.each(searchEngine.searchItemsRequirements, function (searchItemKey, searchItem){
+    foundItems[searchItem.id] = searchValueRec(_input_value, _item_data, searchItem);
+  });
+
+  searchEngine.searchFunction(foundItems, true);
+  $('.cw_search_suggest').focus();
+
 }
 
-
-// search the inputvalue in each Item properties browsing provided requirements 
-function searchValueInAttributes(_input_value, _item_dataInput, searchEngine, output) { 
-        if (_item_dataInput == null) {return;} 
-        var _item_data = jQuery.extend(true, {}, _item_dataInput); 
-        var _regexp = new RegExp('(?![^&;]+;)(?!<[^<>]*)(' + _input_value + ')(?![^<>]*>)(?![^&;]+;)', 'gi'); 
-        var found = false; 
-       
-        var elements = {};
-        $.each(searchEngine.searchItemsRequirements, function (searchItemKey, searchItem){ 
-                elements[searchItem.id] = [];
-                $.each(_item_data[searchItem.id], function(itemKey, item){ 
-                        found = false;         
-                        $.each(searchItem.properties, function(propertyKey, property) { 
-                                var res = matchAttribute(item, property, _input_value); 
-                                if (res[1] == true) { 
-                                        found = res[1]; 
-                                }                 
-                                _item_data[searchItem.id] = res[0];         
-                        }); 
-                        if (searchItem != null && searchItem.children.length > 0) 
-                        {                                 
-                                $.each(searchItem.children, function(childKey, child) { 
-                                        //console.log('child :' , child, item);
-                                        var resRec = searchValueRec(_input_value, item, child, searchEngine.searchClear); 
-                                        if (resRec == true) 
-                                        { 
-                                                found = true; 
-                                        }                                       
-                                });                         
-                        }
-                        if (found == true){  
-                                elements[searchItem.id].push(item);               
-                        }
-                }); 
-        });
-        //console.log('elements', elements);
-        searchEngine.searchFunction(elements, true);
-        $('.cw_search_suggest').focus();
-
-} 
 
 // prepare the search action on the attributes 
 function prepareSearch(viewName, JSONItems, searchEngine) 

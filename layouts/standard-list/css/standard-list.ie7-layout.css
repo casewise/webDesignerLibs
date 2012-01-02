@@ -1,0 +1,18 @@
+
+li.node-header-title{
+	width:90% !important;
+	float:left;
+}
+
+li.node-header-info{
+	width:10% !important;
+	float:left;
+}
+
+li.node-header-info ul{
+	float:right;
+}
+li.node-header-info li{
+	float:left;
+}
+
