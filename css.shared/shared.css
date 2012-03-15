@@ -1,4 +1,4 @@
-#top_of_page{
+#top_of_page, ul.no-margin-padding{
 	margin:0px;
 	padding:0px;
 }
@@ -17,7 +17,9 @@
 	list-style:none;
 }
 
-
+#debugger{
+	display:none;
+}
 .diagram-zone{
 	width:100%;
 	height:100%;
@@ -142,4 +144,44 @@ div.titleHelp{
 	margin:1px;
 	float:right;
 	border:none;
+}
+
+ul.list-box-detailed-accordion{
+	margin:0px;
+	padding:0px;
+}
+
+li.small-box{
+	display:inline-block;
+	vertical-align:top;
+	width:200px;
+	height:60px;
+	margin:2px;
+}
+
+li.small-box div{
+	text-align:center;
+}
+
+li.medium-box div{
+	text-align:center;
+	padding:5px;
+}
+
+li.medium-box{
+	display:inline-block;
+	vertical-align:top;
+	width:400px;
+	min-height:100px;
+	margin:5px;
+}
+
+li.horizontal-list{
+	display:inline-block;
+	vertical-align:top;
+	margin:2px;
+}
+
+li.horizontal-list div{
+	text-align:center;
 }

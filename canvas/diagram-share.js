@@ -4,8 +4,6 @@
 * v0.1 2011/09/25 // setup
 */
 
-
-
 function createDiagramShare(diagram, imgSource, corner){
 
 	var output = Array();
