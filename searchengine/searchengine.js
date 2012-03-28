@@ -105,7 +105,9 @@ function prepareSearch(viewName, JSONItems, searchEngine)
                         // print all the elements and leave  
                         searchEngine.searchFunction(JSONItems, false);                         
                         return;                                         
-                } 
+                }
+                _input_value = _input_value.replace(/ /g, ".*");
+                //console.log(_input_value);
                 
                 var output = new Array(); 
                 searchValueInAttributes(_input_value, JSONItems, searchEngine, output);
