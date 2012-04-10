@@ -20,8 +20,7 @@ $(function () {
 			id = pageArgumentsWithPipes[pageArgumentsWithPipes.length - 1];
 		}
 		jsonFile = '../webdesigner/generated/' + pageName + '/json/' + pageName + id + '.json';
-
-
+		//jsonFile = 'http://localhost:8080/publicationscw/APM/webdesigner/generated/' + pageName + '/json/' + pageName + id + '.json';
 
 		$.ajax({
 			"url": jsonFile,

@@ -1,4 +1,4 @@
-/*global test:true, ok : true, CanvasCamera */
+/*global test:true, ok : true, CanvasCamera, Point:true */
 
 test("create point", function () {
   var p = new Point();
@@ -8,16 +8,16 @@ test("create point", function () {
 });
 
 test("point operations", function () {
-  var p1 = new Point();
+  var p1, p2;
+  p1 = new Point();
   p1.set(2, 3);
 
-  var p2 = new Point();
+  p2 = new Point();
   p2.copy(p1);
-  ok(p1.x == p2.x && p1.y == p2.y, "copy ok");
+  ok(p1.x === p2.x && p1.y === p2.y, "copy ok");
   //console.log();
   ok(p1.equals(p2), "equal ok " + p1 + p2);
-//console.log(p2);
-
+  //console.log(p2);
   p1.divPoint(p2);
   ok(p1.x === 1, "x is fine after divPoint");
   ok(p1.y === 1, "y is fine after divPoint");
@@ -42,15 +42,19 @@ test("point operations", function () {
 
 
 test("camera canvas", function () {
-  var canvas = document.createElement('canvas');
+  var canvas, size, canvasCamera;
+  canvas = document.createElement('canvas');
 
-  var size = {"w" : 100, "h": 100};
+  size = {
+    "w": 100,
+    "h": 100
+  };
   canvas.width = size.w;
 
-  var canvasCamera = new CanvasCamera(canvas, size);
+  canvasCamera = new CanvasCamera(canvas, size);
   ok(canvasCamera.scale === 1, "scale is ok");
 
-  var p1 = new Point(1, 1);
+  /*  var p1 = new Point(1, 1);
   var max1 = new Point(10, 10);
 
   var translate = canvasCamera.translateToKeepFocus(p1, max1, 2);
@@ -69,7 +73,6 @@ test("camera canvas", function () {
   canvasCamera.update();
   var canvasSize = canvasCamera.getCanvasSizePoint(canvasCamera.canvas);
   ok(canvasSize.x === size.w, "canvas size x is ok on getCanvasSizePoint" + canvasSize.x);
-  ok(canvasSize.y === size.h, "canvas size y is ok on getCanvasSizePoint" + canvasSize.y);
+  ok(canvasSize.y === size.h, "canvas size y is ok on getCanvasSizePoint" + canvasSize.y);*/
 
 });
-

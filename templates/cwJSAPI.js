@@ -1,3 +1,5 @@
+/*global DiagramCanvas:true, alert:true */
+
 var cwAPI = {};
 
 cwAPI.isUndefined = function (o) {
@@ -5,20 +7,20 @@ cwAPI.isUndefined = function (o) {
 };
 
 
-cwAPI.putPropertiesInTable = function(output, pName, displayName, object, propertyType, type) {
-  var value = object[pName];
-  if (!_.isUndefined(type)) {
-    value = value.substring(0, 10);
-  }
-  output.push('<tr><th class="property-title-', pName, '">', displayName, '</th><td class="property-value-', pName, '">', value, '</td></tr>');
-}
+cwAPI.putPropertiesInTable = function (output, pName, displayName, object, propertyType, type) {
+	var value = object[pName];
+	if (!_.isUndefined(type)) {
+		value = value.substring(0, 10);
+	}
+	output.push('<tr><th class="property-title-', pName, '">', displayName, '</th><td class="property-value-', pName, '">', value, '</td></tr>');
+};
 
-cwAPI.createTable = function(output, name, mainObject, drawItems) {
-  output.push('<li class="propertiesTable"><table class="propertiesTable">');
-  output.push('<tr><th class="table-header ui-widget ui-widget-header" colspan="2">', name, '</th></tr>');
-  drawItems(output, mainObject);
-  output.push('</table></li>');
-}
+cwAPI.createTable = function (output, name, mainObject, drawItems) {
+	output.push('<li class="propertiesTable"><table class="propertiesTable">');
+	output.push('<tr><th class="table-header ui-widget ui-widget-header" colspan="2">', name, '</th></tr>');
+	drawItems(output, mainObject);
+	output.push('</table></li>');
+};
 
 
 function getDiagram(dID, selectorID, callback) {
@@ -48,13 +50,13 @@ if (!Function.prototype.bind) {
 		var fSlice = Array.prototype.slice,
 			aArgs = fSlice.call(arguments, 1),
 			fToBind = this,
-			fNOP = function () {},
-			fBound = function () {
-			return fToBind.apply(this instanceof fNOP ? this : oThis || window, aArgs.concat(fSlice.call(arguments)));
+			FNOP = function () {},
+			FBound = function () {
+			return fToBind.apply(this instanceof FNOP ? this : oThis || window, aArgs.concat(fSlice.call(arguments)));
 		};
-		fNOP.prototype = this.prototype;
-		fBound.prototype = new fNOP();
-		return fBound;
+		FNOP.prototype = this.prototype;
+		FBound.prototype = new FNOP();
+		return FBound;
 	};
 }
 
@@ -64,14 +66,13 @@ function loadSinglePage(selector, pageName, jsonPageName) {
 	$("head").append("<link type='text/css' rel='stylesheet' media='all' href='../webdesigner/handmade/" + pageName + "/" + pageName + ".css' />");
 	$(selector).html("<ul class='embed' id='zone_" + pageName + "'></ul>");
 	var myURL = "../webdesigner/generated/" + pageName + "/" + jsonPageName + '.json';
-	loadScript(myURL, function () {
-		loadScript("../webdesigner/handmade/" + pageName + "/" + pageName + ".js", function () {});
+	cwAPI.loadScript(myURL, function () {
+		cwAPI.loadScript("../webdesigner/handmade/" + pageName + "/" + pageName + ".js", function () {});
 	});
 }
 
 // load a script and call a callback if first call success
-
-function loadScript(scriptURL, successCallback) {
+cwAPI.loadScript = function (scriptURL, successCallback) {
 
 	$.ajax({
 		url: scriptURL,
@@ -86,16 +87,22 @@ function loadScript(scriptURL, successCallback) {
 			alert(errorThrown);
 		}
 	});
-}
+};
 
 /*function addAssociationBox(output, pName, pDisplayName, p){
 	output.push("<li class='association-box association-", pName, "-box '><ul class='association-details association-", pName, "-details'><li class='association-title association-", pName, "-title'>", pDisplayName, "</li><li class='association-value association-", pName, "-value'>",(p[pName] != '') ? p[pName]: '&nbsp;',"</li></ul></li>");
 }*/
 
 function addPropertyBox(output, pName, pDisplayName, p, specialClass) {
-	output.push("<li class='property-box property-", pName, "-box ", specialClass, "'><ul class='property-details property-", pName, "-details'><li class='property-details property-title property-", pName, "-title'>", pDisplayName, "</li><li class='property-details property-value property-", pName, "-value'>", (p[pName] != '') ? p[pName] : '&nbsp;', "</li></ul></li>");
+	output.push("<li class='property-box property-", pName, "-box ", specialClass, "'><ul class='property-details property-", pName, "-details'><li class='property-details property-title property-", pName, "-title'>", pDisplayName, "</li><li class='property-details property-value property-", pName, "-value'>", (p[pName] !== '') ? p[pName] : '&nbsp;', "</li></ul></li>");
 }
 
+
+cwAPI.removeSearchEngineZone = function (text) {
+	var out = text.replace(/<span class='webindex_item_found'>/gi, '');
+	out = out.replace(/<\/span>/, '');
+	return out;
+};
 
 function removeULBullets() {
 	$('ul.properties-zone-area').css('margin', '0px').css('padding', '0px');
@@ -108,7 +115,8 @@ function removeULBullets() {
 
 function doActionsForSingle() {
 
-	_.each(appliedLayouts, function (layout) {
+
+	_.each(cwAPI.appliedLayouts, function (layout) {
 		layout.applyCSS();
 	});
 
@@ -132,7 +140,7 @@ function doActionsForSingle() {
 
 	removeULBullets();
 
-	if ($.browser.msie && $.browser.version == 7) {
+	if ($.browser.msie && $.browser.version === 7) {
 		//$('li.property-box').css('width', '100%');
 		$('li.property-box').css('float', 'left');
 		$('li.property-box-memo').css('width', '100%');
@@ -140,22 +148,22 @@ function doActionsForSingle() {
 		//$('ul.properties-zone-area').css('width', '100%');
 	}
 
-	doActionForCustomSingle();
 }
 
-function doActionForCustomSingle() {
+function doActionForCustomSingle() {}
 
-}
+function doActionForCustomSingle() {}
 
 
 // transform un li en accordion
 cwAPI.setAccordion = function (selector, childSelector, removeIfEmptyChildren) {
+	var expandClass, collapseClass, collapse, expand, ul, li, span, content;
 
-	var collapseClass = "ui-icon-circle-plus";
-	var expandClass = "ui-icon-circle-minus";
+	collapseClass = "ui-icon-circle-plus";
+	expandClass = "ui-icon-circle-minus";
 
-	var collapse = "<span class='accordion ui-icon " + collapseClass + "'></span>";
-	var expand = "<span class='accordion ui-icon " + expandClass + "'/>";
+	collapse = "<span class='accordion ui-icon " + collapseClass + "'></span>";
+	expand = "<span class='accordion ui-icon " + expandClass + "'/>";
 
 	//console.log(selector + " " + childSelector)
 	$("li." + selector + " " + childSelector).hide();
@@ -165,8 +173,8 @@ cwAPI.setAccordion = function (selector, childSelector, removeIfEmptyChildren) {
 		//removeIfEmptyChildren = false;
 		if (!_.isUndefined(removeIfEmptyChildren) && removeIfEmptyChildren) {
 			if ($(div).next().length === 0) {
-				var li = $(div).parent();
-				var ul = li.parent();
+				li = $(div).parent();
+				ul = li.parent();
 				li.remove();
 				if (ul.children().length === 0) {
 					ul.remove();
@@ -179,8 +187,8 @@ cwAPI.setAccordion = function (selector, childSelector, removeIfEmptyChildren) {
 			$(div).children("a").before(collapse);
 
 			$(div).click(function () {
-				var span = $(this).children('span.accordion');
-				var content = span
+				span = $(this).children('span.accordion');
+				content = span;
 				if (span.hasClass(collapseClass)) {
 					span.removeClass(collapseClass);
 					span.addClass(expandClass);
@@ -202,14 +210,14 @@ cwAPI.setAccordion = function (selector, childSelector, removeIfEmptyChildren) {
 	/*	if ($(selector).length > 0 && $(selector).html().length === 0) {
 
 	}*/
-}
+};
 
 
 
 function setColumn3(selector) {
 	var liSelector = "li." + selector;
 	$(liSelector).css('width', '32%').css('display', 'inline-block').css('vertical-align', 'top').css('margin', '2px');
-	if ($.browser.msie && $.browser.version == 7) {
+	if ($.browser.msie && $.browser.version === 7) {
 		$(liSelector).css('float', 'left');
 	}
 	$(liSelector + ' li.node-header-title').css('width', '70%');
@@ -219,14 +227,24 @@ function setColumn3(selector) {
 function setColumn2(selector) {
 	var liSelector = "li." + selector;
 	$(liSelector).css('width', '49%').css('display', 'inline-block').css('vertical-align', 'top').css('margin', '5px');
-	if ($.browser.msie && $.browser.version == 7) {
+	if ($.browser.msie && $.browser.version === 7) {
 		$(liSelector).css('float', 'left');
 	}
 	$(liSelector + ' li.node-header-title').css('width', '70%');
 	$(liSelector + ' li.node-header-info').css('width', '30%');
 }
 
-
+cwAPI.setupLanguage = function (language, libPathFromMain) {
+	$.i18n.properties({
+		"name": 'translations',
+		"path": libPathFromMain + "i18n/translations/",
+		"mode": "map",
+		"language": language,
+		"callback": function () {
+			//console.log('i18n loaded');
+		}
+	});
+};
 
 /*function doActionsForSingle()
 {
@@ -265,9 +283,19 @@ function setColumn2(selector) {
 	}
 }*/
 
+
+
 function doLayoutsSpecialActionsLocal() {}
 
 function doLayoutsSpecialActions() {
+
+	//console.log();
+	_.each(cwAPI.appliedLayouts, function (layout) {
+
+		layout.applyCSS();
+	});
+
+
 
 	$('.navigation-icon').addClass('ui-icon ui-icon-info');
 	$('.navigation-icon').click(function () {
@@ -287,11 +315,16 @@ cwAPI.isUnderIE9 = function () {
 		return true;
 	}
 	return false;
-}
+};
 
 function getCSSClassesDependingOnChildren(_hasChildrenCondition, _nodeName, _isAccordion) {
-	var _liNameStyle = ''
-	var _divNameStyle = ''
+	var _liNameStyle, _divNameStyle, fakeAccordionLi, fakeAccordionDiv;
+
+	fakeAccordionLi = '';
+	fakeAccordionDiv = '';
+
+	_liNameStyle = '';
+	_divNameStyle = '';
 	_liNameStyle = _nodeName + ' ' + _nodeName + '-has-children has-children';
 	_divNameStyle = _nodeName + ' ' + _nodeName + '-has-children has-children';
 	if (_hasChildrenCondition) {
@@ -344,18 +377,23 @@ function setToolTipsOnTitles() {
 
 
 function hasChildren(_o) {
-	var sum = 0;
-	for (var e in _o) {
-		if (_.isArray(_o[e])) {
-			sum += _o[e].length;
+	var sum, e;
+	sum = 0;
+
+	for (e in _o) {
+		if (_o.hasOwnProperty(e)) {
+			if (_.isArray(_o[e])) {
+				sum += _o[e].length;
+			}
 		}
 	}
+
 	return sum > 0;
 }
 
 
 
-var appliedLayouts = [];
+cwAPI.appliedLayouts = [];
 
 
 var LayoutListBoxDetailed = function (css, ogsName) {
@@ -364,20 +402,23 @@ var LayoutListBoxDetailed = function (css, ogsName) {
 
 	this.fakeAccordionLi = "ui-accordion ui-widget ui-helper-reset ui-accordion-icons";
 	this.fakeAccordionDiv = "ui-accordion-header ui-helper-reset ui-state-default ui-corner-all";
-	appliedLayouts.push(this);
-}
+	cwAPI.appliedLayouts.push(this);
+};
+
 LayoutListBoxDetailed.prototype.applyCSS = function () {};
 
 
 
 LayoutListBoxDetailed.prototype.drawAssociations = function (output, _associationTitleText, _object, _associationKey, callback) {
+	var site_has_children_condition, nameStyle;
+
 	//console.log(_object, ", ", _associationKey);
 	if (_object[_associationKey].length > 0) {
 		// output.push("<ul class='", this.css, "  standard-list-node standard-list-node-list'>");
 		_.each(_object[_associationKey], function (one_object) {
 			//console.log(one_object, ", ", _associationKey);
-			var site_has_children_condition = hasChildren(one_object);
-			var nameStyle = getCSSClassesDependingOnChildren(site_has_children_condition, _associationKey, false);
+			site_has_children_condition = hasChildren(one_object);
+			nameStyle = getCSSClassesDependingOnChildren(site_has_children_condition, _associationKey, false);
 
 			output.push("<li class='" + this.css + " " + nameStyle.liNameStyle + " ", (!site_has_children_condition) ? this.fakeAccordionLi : '', "  '>");
 			output.push("<div class='" + nameStyle.divNameStyle + " node-header ", (!site_has_children_condition) ? this.fakeAccordionDiv : '', "'>");
@@ -401,16 +442,17 @@ LayoutListBoxDetailed.prototype.drawAssociations = function (output, _associatio
 		}.bind(this));
 		// output.push("</ul>");
 	}
-}
+};
 
 
 
 cwAPI.drawListBox = function (layout, output, _associationTitleText, _object, _associationKey, listBoxName, callback) {
+	var l, targetObject;
 	if (_.isUndefined(_object[_associationKey])) {
 		//console.log('draw association _associationKey[', _associationKey, '] don\'t exists for ', _object);
 		return;
 	}
-	var targetObject = _object[_associationKey];
+	targetObject = _object[_associationKey];
 
 	if (targetObject.length > 0) {
 		output.push("<div class='property-box ", layout.css, "-box property-box-asso'>");
@@ -419,20 +461,20 @@ cwAPI.drawListBox = function (layout, output, _associationTitleText, _object, _a
 		output.push(listBoxName);
 		output.push("</li>");
 		output.push("<li class='property-details property-value ", layout.css, "-details ", layout.css, "-value'>");
-		var l = new LayoutList(layout.css, this.objectTypeName, layout.setLink);
+		l = new LayoutList(layout.css, this.objectTypeName, layout.setLink);
 		l.drawAssociations(output, _associationTitleText, _object, _associationKey, callback);
 		output.push("</li>");
 		output.push("</ul></div>");
 	}
-}
+};
 
 var LayoutListBoxObjectGroupName = function (_css, _objectTypeName, _objectGroupName, setLink) {
 	this.css = _css;
 	this.objectTypeName = _objectTypeName;
 	this.objectGroupName = _objectGroupName;
 	this.setLink = setLink;
-	appliedLayouts.push(this);
-}
+	cwAPI.appliedLayouts.push(this);
+};
 LayoutListBoxObjectGroupName.prototype.applyCSS = function () {};
 
 LayoutListBoxObjectGroupName.prototype.drawAssociations = function (output, _associationTitleText, _object, _associationKey, callback) {
@@ -444,8 +486,8 @@ var LayoutListBox = function (_css, _objectTypeName, setLink) {
 	this.css = _css;
 	this.objectTypeName = _objectTypeName;
 	this.setLink = setLink;
-	appliedLayouts.push(this);
-}
+	cwAPI.appliedLayouts.push(this);
+};
 LayoutListBox.prototype.applyCSS = function () {};
 
 LayoutListBox.prototype.drawAssociations = function (output, _associationTitleText, _object, _associationKey, callback) {
@@ -457,11 +499,12 @@ var LayoutList = function (_css, _objectTypeName, setLink, parent) {
 	this.objectTypeName = _objectTypeName;
 	this.setLink = setLink;
 	this.parent = parent;
-	appliedLayouts.push(this);
-}
+	cwAPI.appliedLayouts.push(this);
+};
 LayoutList.prototype.applyCSS = function () {};
 
 LayoutList.prototype.drawAssociations = function (output, _associationTitleText, _object, _associationKey, callback) {
+	var itemDisplayName, titleOnMouseOver;
 	if (_.isUndefined(_object[_associationKey])) {
 		//console.log('draw association _associationKey[', _associationKey, '] don\'t exists for ', _object);
 		return;
@@ -477,11 +520,11 @@ LayoutList.prototype.drawAssociations = function (output, _associationTitleText,
 			}
 
 			//console.log(_child);
-			var titleOnMouseOver = "";
-			if (!_.isUndefined(_child["description"])) {
-				titleOnMouseOver = _child["description"];
+			titleOnMouseOver = "";
+			if (!_.isUndefined(_child.description)) {
+				titleOnMouseOver = _child.description;
 			}
-			var itemDisplayName = "<a class='" + this.css + " tooltip-me' href='" + _child.link_id + "' title='" + titleOnMouseOver + "'>" + _child.name + "</a>";
+			itemDisplayName = "<a class='" + this.css + " tooltip-me' href='" + _child.link_id + "' title='" + titleOnMouseOver + "'>" + _child.name + "</a>";
 			if (this.setLink === false) {
 				itemDisplayName = "<span class='" + this.css + "'>" + _child.name + "</span>";
 			}
@@ -500,8 +543,8 @@ var LayoutDataCenter = function (css, _technologyID, _emplacementID) {
 	this.css = css;
 	this.technologyID = _technologyID;
 	this.emplacementID = _emplacementID;
-	appliedLayouts.push(this);
-}
+	cwAPI.appliedLayouts.push(this);
+};
 
 LayoutDataCenter.prototype.drawAssociations = function (output, _associationTitleText, _object, _associationKey, callback) {
 
@@ -524,7 +567,7 @@ LayoutDataCenter.prototype.drawAssociations = function (output, _associationTitl
 				}
 			}.bind(this));
 		} else {
-			output.push('<td></td>')
+			output.push('<td></td>');
 		}
 		output.push('</tr>');
 	}.bind(this));
@@ -542,14 +585,22 @@ LayoutDataCenter.prototype.applyCSS = function () {
 var LayoutDiagram = function (_css, _objectTypeName) {
 	this.css = _css;
 	this.objectTypeName = _objectTypeName;
-	appliedLayouts.push(this);
+	cwAPI.appliedLayouts.push(this);
 	this.diagrams = [];
-}
+
+};
 LayoutDiagram.prototype.applyCSS = function () {
 
-	_.each(this.diagrams, function (d) {
 
+	_.each(this.diagrams, function (d) {
+		//console.log(d);
 		var diagramSelectorID = "diagram-" + this.css + "-" + d.object_id;
+
+
+		$('#' + diagramSelectorID).prev().hover(function (e) {
+			$(this).css('cursor', 'pointer');
+		});
+
 		// open by default
 		//getDiagram(d.object_id, diagramSelectorID, function () {});
 		// toggle on click		
@@ -561,14 +612,13 @@ LayoutDiagram.prototype.applyCSS = function () {
 				$('#' + diagramSelectorID).show('fast', function () {
 					$('#' + diagramSelectorID).height('400px');
 					$('#' + diagramSelectorID).html('');
+
 					getDiagram(d.object_id, diagramSelectorID, function () {});
 				});
 			} else {
 				$('#' + diagramSelectorID).hide('fast');
 				$('#' + diagramSelectorID).html('');
 			}
-
-
 		});
 	}.bind(this));
 

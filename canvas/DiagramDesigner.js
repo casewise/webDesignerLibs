@@ -75,7 +75,6 @@ DiagramDesigner.prototype.setupDiagram = function () {
   if (this.json.shapes.length > 0) {
     this.createCanvas();
   }
-
 };
 
 
@@ -92,6 +91,7 @@ DiagramDesigner.prototype.createCanvas = function () {
   $('#' + el.id).addClass("diagram-canvas");
   this.diagramCanvas = new DiagramCanvas(dID, this.json, this.selectorID);
   $('body').data('design' + dID, this);
+ 
 };
 
 
@@ -120,7 +120,6 @@ DiagramDesigner.prototype.doDefinedDesign = function (items, parentShape, parent
 };
 
 DiagramDesigner.prototype.loadTemplate = function (url, callback) {
-  //$(".a-index-area").hide();
   $.getJSON(url, function (JSONTemplateData) {
     this.json.objectTypesStyles = JSONTemplateData.objectTypesStyles;
     callback();

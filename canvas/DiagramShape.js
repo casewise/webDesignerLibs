@@ -101,6 +101,7 @@ DrawEngine.prototype.SH_ROUND_CORNER_RECT = function (ctx, x, y, width, height, 
 
 DiagramShape = function (shape, paletteEntry) {
   this.shape = shape;
+  this.shape.name = cwAPI.removeSearchEngineZone(this.shape.name);
   this.paletteEntry = paletteEntry;
 };
 
@@ -256,6 +257,7 @@ DiagramShape.prototype.drawRegions = function (ctx) {
     }
     if (region.type === "property_value") {
       regionSize = this.getRegionSize(region);
+
       textSize = this.getRegionTextSize(regionSize, region.style.fontSize);
       if (!_.isUndefined(region.style.fillPattern) && region.style.fillPattern === "Solid") {
         ctx.fillStyle = region.style.fillColor;
@@ -274,6 +276,7 @@ DiagramShape.prototype.drawRegions = function (ctx) {
 
 
 DiagramShape.prototype.drawText = function (ctx, text, style) {
+  var textRegionSize;
   // draw custom text
   ctx.font = style.font;
   ctx.fillStyle = style.textColor;
@@ -283,7 +286,7 @@ DiagramShape.prototype.drawText = function (ctx, text, style) {
 };
 
 DiagramShape.prototype.draw = function (ctx, searchValue) {
-  var alpha, textColor, textRegionSize, textStyle;
+  var alpha, textColor, textStyle;
 
 
   alpha = 1;
@@ -319,55 +322,58 @@ DiagramShape.prototype.draw = function (ctx, searchValue) {
 
 
 
-DiagramShape.prototype.getLinesNumberFromText = function (context, text, maxWidth) {
-  var words = text.split(" "),
-    line = "",
-    num = 1,
-    n, testLine, metrics, testWidth;
+DiagramShape.prototype.getLinesNumberFromText = function (context, text, maxWidth, lines) {
+  var words, line, num, n, testLine, metrics, testWidth;
+
+  words = text.split(" ");
+  line = "";
+  num = 1;
   for (n = 0; n < words.length; n += 1) {
     testLine = line + words[n] + " ";
     metrics = context.measureText(testLine);
     testWidth = metrics.width;
     if (testWidth > maxWidth) {
+      lines.push(line);
       line = words[n] + " ";
       num += 1;
     } else {
       line = testLine;
     }
   }
+  lines.push(line);
   return num;
 };
 
-DiagramShape.prototype.method_name = function (first_argument) {
-  // body...
-};
 DiagramShape.prototype.wrapText = function (context, text, x, y, lineHeight, maxWidth, maxHeight, align, valign) {
-  var numLine, blockHeight, words, line = "",
-    testLine, metrics, testWidth, n;
+  var numLine, blockHeight, words, line, testLine, metrics, testWidth, n, lines;
+
+  lineHeight -= 1.5;
+  lines = [];
+  line = "";
+  numLine = this.getLinesNumberFromText(context, text, maxWidth, lines);
   context.textAlign = align;
   if (align === "center") {
     x += maxWidth / 2;
   }
 
   if (valign === "middle") {
-    numLine = this.getLinesNumberFromText(context, text, maxWidth);
     blockHeight = lineHeight * numLine;
     y += (maxHeight - blockHeight) / 2;
   }
   words = text.split(" ");
   line = "";
-
-  for (n = 0; n < words.length; n += 1) {
-    testLine = line + words[n] + " ";
-    metrics = context.measureText(testLine);
-    testWidth = metrics.width;
-    if (testWidth > maxWidth) {
-      context.fillText(line, x, y);
-      line = words[n] + " ";
-      y += lineHeight;
-    } else {
-      line = testLine;
+  if (numLine * lineHeight > maxHeight) {
+    var limitLineNum = Math.floor(maxHeight / lineHeight);
+    for (n = limitLineNum + 1; n < numLine; n += 1) {
+      lines[n] = "";
+    }
+    if (limitLineNum !== lines.length - 1){
+      lines[limitLineNum] = lines[limitLineNum].replace(/.{3}$/gi, "...");  
     }
   }
-  context.fillText(line, x, y);
+
+  _.each(lines, function (line) {
+    context.fillText(line, x, y);
+    y += lineHeight;
+  });
 };

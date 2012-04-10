@@ -30,16 +30,28 @@ var CanvasCamera = function (canvas, diagramSize, tickCallback) {
   this.mousePosition = new Point();
   this.mouseWheelRepeat = 0;
 
-  /*this.drawZoneSize = new Point();
-  this.drawZoneSize.set(_drawZoneSize.w, _drawZoneSize.h);
-  */
-  this.initialTranslate = new Point();
+  this.isShiftPressed = false;
+  $("body").keydown(function (e) {
+    if (e.keyCode === 16) {
+      this.isShiftPressed = true;
+    }
+  }.bind(this));
+  $("body").keyup(function (e) {
+    if (e.keyCode === 16) {
+      this.isShiftPressed = false;
+    }
+  }.bind(this));
 
+  this.initialTranslate = new Point();
   this.canvasScaledSize.set(this.canvas.width * this.scale, this.canvas.height * this.scale);
 
   this.scaleNum = 5;
 
   this.renderScale = 1.5;
+  if (cwAPI.isUnderIE9()) {
+    this.renderScale = 1;
+  }
+
 
   this.mouseIsDown = false;
   this.mouseInDrawZone = new Point();
@@ -68,8 +80,12 @@ var CanvasCamera = function (canvas, diagramSize, tickCallback) {
 
 
 
+  this.diagramCanvasIsSelected = false;
+
+
   $(this.canvas).mousedown(function (e) {
     // stop the scaling
+    this.hasBeenSelected();
     this.mouseWheelRepeat = 0;
 
     this.mouseIsDown = true;
@@ -83,6 +99,7 @@ var CanvasCamera = function (canvas, diagramSize, tickCallback) {
     return false;
   }.bind(this));
   $(this.canvas).click(function (e) {
+    this.hasBeenSelected();
     this.onClick(e);
     return false;
   }.bind(this));
@@ -91,17 +108,34 @@ var CanvasCamera = function (canvas, diagramSize, tickCallback) {
     return false;
   }.bind(this));
   $(this.canvas).bind('mousewheel', function (event, delta) {
-    //this.mouseMove(event);
-    ////console.log(this.mouseInDrawZone, this.diagramCanvas.diagramInfo.size);
+    if (!this.isSelected()) {
+      return;
+    }
     if (this.mouseInDrawZone.x > 0 && this.mouseInDrawZone.y > 0) {
       if (this.mouseInDrawZone.x < this.diagramSize.w * this.renderScale && this.mouseInDrawZone.y < this.diagramSize.h * this.renderScale) {
         this.mouseWheel(event, delta);
         return false;
       }
     }
-
-
   }.bind(this));
+  $(this.canvas).mouseout(function (e) {
+    this.hasBeenReleased();
+  }.bind(this));
+};
+
+
+CanvasCamera.prototype.isSelected = function () {
+  return this.diagramCanvasIsSelected;
+};
+
+CanvasCamera.prototype.hasBeenSelected = function () {
+  this.diagramCanvasIsSelected = true;
+  $(this.canvas).addClass("isSelected");
+};
+
+CanvasCamera.prototype.hasBeenReleased = function () {
+  this.diagramCanvasIsSelected = false;
+  $(this.canvas).removeClass("isSelected");
 };
 
 CanvasCamera.prototype.onClick = function (e) {};
@@ -341,14 +375,14 @@ CanvasCamera.prototype.mouseMove = function (e) {
   var translate = new Point();
   if (this.mouseIsDown) {
     this.mouseWheelRepeat = 0;
-    //if (this.mouseWheelRepeat !== 0) {
     translate.set(this.canvasMousePosition.x - this.saveMouseDown.x, this.canvasMousePosition.y - this.saveMouseDown.y);
     this.translate.add(translate);
     this.update();
     this.tickCallback();
-    //}
   }
 
+  if (this.isShiftPressed) {
+  }
 };
 
 CanvasCamera.prototype.updateScaledSize = function () {
@@ -427,7 +461,7 @@ CanvasCamera.prototype.translateToDestination = function (destinationPoint, move
     numberOfTranslateIterations = firstDistance.y / move;
   }
 
-  scaleRequiredByIteration = Math.abs(this.scale  - finaleScale) / numberOfTranslateIterations;
+  scaleRequiredByIteration = Math.abs(this.scale - finaleScale) / numberOfTranslateIterations;
   //console.log("after", firstDistance, numberOfTranslateIterations, scaleRequiredByIteration, destinationPoint);
   this.translateAnimationInterval = window.setInterval(function () {
 

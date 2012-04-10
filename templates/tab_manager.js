@@ -17,6 +17,8 @@ cwTabManager.activeTab = function(selecor){
 
 	$(selecor).tabs({
 		"show": function(event, ui) { 
+
+
 			var tabID = ui.tab.hash;
 			//console.log("tabID", tabID);
 			$(tabID).find('div.diagram-zone').each(function(i, diagramZone){

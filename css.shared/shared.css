@@ -3,6 +3,16 @@
 	padding:0px;
 }
 
+canvas{
+	border:2px solid #FAFAFA;
+}
+
+canvas.isSelected{
+	border-color:#EEE;
+}
+
+
+
 .search-input-for-diagrams{
 	height:22px;
 }
@@ -14,7 +24,26 @@
 
 .diagramNavigation-li{
 	list-style-image:none!important;
+}
 
+
+ul.diagramNavigation{
+
+	padding:5px;
+	padding-top:10px;
+	margin:0px;
+/*	position:absolute;*/
+	float:right;
+/*	top:0px;
+	*/
+	border:none;
+	z-index:50;
+}
+
+.diagramNavigation li{
+	margin-bottom:4px;
+	list-style:none;
+	z-index:205;
 }
 
 .diagramShare{
@@ -49,24 +78,6 @@ span.accordion{
 
 
 
-.diagramNavigation{
-
-	padding:5px;
-	padding-top:0px;
-	margin-top:0px;
-	position:absolute;
-
-/*	top:0px;
-	*/
-	border:none;
-	z-index:50;
-}
-
-.diagramNavigation li{
-	margin-bottom:4px;
-	list-style:none;
-	z-index:205;
-}
 
 .copyClipboard{
 	 z-index:50;
