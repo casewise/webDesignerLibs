@@ -107,21 +107,57 @@ DiagramShape = function (shape, paletteEntry) {
 
 
 
-DiagramShape.prototype.drawSymbol = function (ctx) {
-  var symbol, drawEngine, usedStyle;
-
+DiagramShape.prototype.drawSymbolPath = function (ctx, symbol) {
   drawEngine = new DrawEngine(ctx);
-  symbol = 0;
+  switch (symbol) {
+  case 2:
+    drawEngine.SH_RIGHT_ARROW(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
+    break;
+  case 11:
+    drawEngine.SH_LIGHTNING(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
+    break;
+  case 16:
+    drawEngine.SH_RR_ARROW(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
+    break;
+  case 100:
+  case 25:
+    drawEngine.SH_DIAMOND(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
+    break;
+  case 7:
+    drawEngine.SH_ROUND_CORNER_RECT(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h, 5);
+    break;
+  case 209:
+    drawEngine.SH_CIRCLE_SET(ctx, this.shape.x, this.shape.y, this.shape.w);
+    break;
+  default:
+    drawEngine.normalRect(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
+  }
+};
 
-  if (!_.isUndefined(this.shape.customStyle) && this.shape.customStyle) { // custom styles
-    usedStyle = this.shape.customStyle;
-  } else if (!_.isUndefined(this.paletteEntry) && this.paletteEntry) { // generic style
+
+DiagramShape.prototype.getSymbol = function () {
+  var symbol;
+  if (!_.isUndefined(this.paletteEntry) && this.paletteEntry) { // generic style
     symbol = this.paletteEntry.symbol;
-    usedStyle = this.paletteEntry.style;
   }
   // custom symbol
   if (!_.isUndefined(this.shape.customSymbol)) {
     symbol = this.shape.customSymbol;
+  }
+  return symbol;
+}
+
+
+DiagramShape.prototype.drawSymbol = function (ctx) {
+  var symbol, drawEngine, usedStyle;
+
+
+  symbol = this.getSymbol();
+
+  if (!_.isUndefined(this.shape.customStyle) && this.shape.customStyle) { // custom styles
+    usedStyle = this.shape.customStyle;
+  } else if (!_.isUndefined(this.paletteEntry) && this.paletteEntry) { // generic style
+    usedStyle = this.paletteEntry.style;
   }
 
   //  console.log(usedStyle);
@@ -169,30 +205,7 @@ DiagramShape.prototype.drawSymbol = function (ctx) {
   } else {
     ctx.fillStyle = usedStyle.fillColor;
   }
-
-  switch (symbol) {
-  case 2:
-    drawEngine.SH_RIGHT_ARROW(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
-    break;
-  case 11:
-    drawEngine.SH_LIGHTNING(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
-    break;
-  case 16:
-    drawEngine.SH_RR_ARROW(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
-    break;
-  case 100:
-  case 25:
-    drawEngine.SH_DIAMOND(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
-    break;
-  case 7:
-    drawEngine.SH_ROUND_CORNER_RECT(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h, 5);
-    break;
-  case 209:
-    drawEngine.SH_CIRCLE_SET(ctx, this.shape.x, this.shape.y, this.shape.w);
-    break;
-  default:
-    drawEngine.normalRect(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
-  }
+  this.drawSymbolPath(ctx, symbol);
 
   if (cwAPI.isUndefined(usedStyle.fillPattern) || usedStyle.fillPattern !== "Transparent") {
     ctx.fill();
@@ -269,7 +282,7 @@ DiagramShape.prototype.drawRegions = function (ctx) {
       if (!_.isUndefined(region.style.textColor)) {
         ctx.fillStyle = region.style.textColor;
       }
-      this.wrapText(ctx, this.shape.properties[region.propertyScriptName], textSize.x, textSize.y, textSize.fontSize, textSize.w, textSize.h, region.horizontalAlignment, region.verticalAlignment);
+      this.wrapText(ctx, this.shape.cwObject.properties[region.propertyScriptName], textSize.x, textSize.y, textSize.fontSize, textSize.w, textSize.h, region.horizontalAlignment, region.verticalAlignment);
     }
   }.bind(this));
 };
@@ -367,8 +380,8 @@ DiagramShape.prototype.wrapText = function (context, text, x, y, lineHeight, max
     for (n = limitLineNum + 1; n < numLine; n += 1) {
       lines[n] = "";
     }
-    if (limitLineNum !== lines.length - 1){
-      lines[limitLineNum] = lines[limitLineNum].replace(/.{3}$/gi, "...");  
+    if (limitLineNum !== lines.length - 1) {
+      lines[limitLineNum] = lines[limitLineNum].replace(/.{3}$/gi, "...");
     }
   }
 

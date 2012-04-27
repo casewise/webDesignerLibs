@@ -1,0 +1,4 @@
+var DiagramContext = function(){
+
+}
+

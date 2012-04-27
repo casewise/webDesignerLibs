@@ -1,4 +1,4 @@
-/*global DiagramCanvas:true */
+/*global DiagramCanvas:true, Point:true, cwConfigs :true, cwAPI:true */
 
 var DiagramDesignerAPI = {};
 DiagramDesignerAPI.diagramDesignerCreateVerticalNode = function (objectsKey, paletteEntryKey, num, side, translateX, translateY, shapeSpaceY, setJoiner, children) {
@@ -44,9 +44,8 @@ DiagramDesignerAPI.diagramDesignerCreateIncludeNode = function (objectsKey, pale
 var DiagramDesigner = function (all_items, algo, selectorID, templateAbbreviation, parentSelector, height) {
 
   //console.log(parentSelector);
-
   this.height = height;
-  var templateURL = '../webdesigner/generated/diagram/json/template' + templateAbbreviation + '.json';
+  var templateURL = cwConfigs.SITE_MEDIA_PATH + 'webdesigner/generated/diagram/json/template' + templateAbbreviation + '.' + cwConfigs.JSON_EXTENTION;
   this.all_items = all_items;
   this.parentSelector = parentSelector;
   this.algo = algo;
@@ -57,6 +56,8 @@ var DiagramDesigner = function (all_items, algo, selectorID, templateAbbreviatio
     "w": 100,
     "h": 100
   };
+
+  this.mostTopLef = new Point(0, 0);
 
   this.json.joiners = [];
 
@@ -73,6 +74,7 @@ DiagramDesigner.prototype.clean = function () {
 DiagramDesigner.prototype.setupDiagram = function () {
   this.doDesign(this.all_items);
   if (this.json.shapes.length > 0) {
+
     this.createCanvas();
   }
 };
@@ -91,7 +93,7 @@ DiagramDesigner.prototype.createCanvas = function () {
   $('#' + el.id).addClass("diagram-canvas");
   this.diagramCanvas = new DiagramCanvas(dID, this.json, this.selectorID);
   $('body').data('design' + dID, this);
- 
+
 };
 
 
@@ -105,25 +107,62 @@ DiagramDesigner.prototype.doDesign = function (all_items) {
   };
 
   this.json.shapes = this.doDefinedDesign(all_items, parentShape, parentLevel, this.algo.level0);
-
+  this.updateDiagramSizeAfterShapesCreation();
+  this.translateShapesAndJoinerIfRequired();
 };
 
 
-DiagramDesigner.prototype.doDefinedDesign = function (items, parentShape, parentLevel, level) {
-  //console.log("ITEMS", items, level.design);
+DiagramDesigner.prototype.translateShapesAndJoinerIfRequired = function () {
+  // translate the shapes & joiners if required
+  if (this.mostTopLef.x <= 0 && this.mostTopLef.y <= 0) {
+
+    $.each(this.json.shapes, function (i, shape) {
+      shape.x += -this.mostTopLef.x;
+      shape.y += -this.mostTopLef.y;
+    }.bind(this));
+
+    _.each(this.json.joiners, function (joiner) {
+      _.each(joiner.points, function (point) {
+        point.x += -this.mostTopLef.x;
+        point.y += -this.mostTopLef.y;
+      }.bind(this));
+    }.bind(this));
+  }
+
+};
+
+DiagramDesigner.prototype.updateDiagramSizeAfterShapesCreation = function () {
+
+  if (this.mostTopLef.x < 0) {
+    this.json.diagram.size.w += -this.mostTopLef.x;
+  }
+
+  if (this.mostTopLef.y < 0) {
+    this.json.diagram.size.h += -this.mostTopLef.y;
+  }
+};
+
+DiagramDesigner.prototype.doDefinedDesign = function (item, parentShape, parentLevel, level) {
+  var items = item.associations[level.objectsKey];
+  if (_.isUndefined(items)) {
+    return [];
+  }
+  if (items.length === 0){
+     return [];
+  }
   switch (level.design) {
   case "vertical":
-    return this.createShapesVertical(items[level.objectsKey], level, parentShape, parentLevel);
+    return this.createShapesVertical(items, level, parentShape, parentLevel);
   case "include":
-    return this.createShapesInclude(items[level.objectsKey], level, parentShape, parentLevel);
+    return this.createShapesInclude(items, level, parentShape, parentLevel);
   }
 };
 
 DiagramDesigner.prototype.loadTemplate = function (url, callback) {
-  $.getJSON(url, function (JSONTemplateData) {
+  cwAPI.getJSONFile(url, function (JSONTemplateData) {
     this.json.objectTypesStyles = JSONTemplateData.objectTypesStyles;
     callback();
-  }.bind(this));
+  }.bind(this), cwAPI.errorOnLoadPage);  
 };
 
 
@@ -147,19 +186,13 @@ DiagramDesigner.prototype.createShapesVertical = function (objects, level, paren
   $.each(objects, function (shapeIndex, item) {
     shape = this.createShape(item, paletteEntry, level);
     if (lastShape !== null) {
-
       shape.x = lastShape.x;
       shape.y = lastShape.y + lastShape.h + level.shapeSpace.y;
     } else {
-
-
       shape.x = x;
       shape.y = y;
     }
-
-    //console.log(shape);
     shapes.push(shape);
-
     this.updateParentSize(level, parentLevel, shape, parentShape);
 
     // set joiners
@@ -178,7 +211,6 @@ DiagramDesigner.prototype.createShapesVertical = function (objects, level, paren
           "x": parentShape.x,
           "y": shape.y + shape.h / 2
         });
-        //this.json.joiners.push(new )
         break;
       case "right":
         joiner.points.push({
@@ -198,7 +230,13 @@ DiagramDesigner.prototype.createShapesVertical = function (objects, level, paren
 
     lastShape = shape;
     this.updateDiagramSize(shape);
-    //console.log(shape);
+
+    if (shape.x < this.mostTopLef.x) {
+      this.mostTopLef.x = shape.x;
+    }
+    if (shape.y < this.mostTopLef.y) {
+      this.mostTopLef.y = shape.y;
+    }
   }.bind(this));
 
   return shapes;
@@ -211,25 +249,21 @@ DiagramDesigner.prototype.createShape = function (item, paletteEntry, level) {
     "objectPaletteEntryKey": level.paletteEntryKey
   };
   shape.name = item.name;
-  shape.properties = item;
+  shape.cwObject = {};
+  shape.cwObject.properties = item.properties;
   return shape;
 };
 
 DiagramDesigner.prototype.createShapesInclude = function (objects, level, parentShape, parentLevel) {
   var shapes, x, y, maxColumn, shape, row, col, paletteEntry, lastShape, maxRowHeight;
 
-  //console.log(this.json, paletteEntryKey);
-  paletteEntry = this.json.objectTypesStyles[level.paletteEntryKey];
-  //this.paletteEntryKey = 
   shapes = [];
+  paletteEntry = this.json.objectTypesStyles[level.paletteEntryKey];
   x = parentShape.x;
   y = parentShape.y;
   maxColumn = level.maxColumn;
 
-
   lastShape = null;
-  //var shapeLeft = {};
-  //var shapeRight = {};
   maxRowHeight = paletteEntry.defaultHeight;
 
   $.each(objects, function (shapeIndex, item) {

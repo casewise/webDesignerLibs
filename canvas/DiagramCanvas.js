@@ -9,52 +9,36 @@ var DiagramCanvas = function (diagramID, jsonDiagramFile, selectorID) {
   }
   this.canvasID = this.selectorID + "-canvas";
 
-
   this.objectTypesStyles = jsonDiagramFile.objectTypesStyles;
   this.diagramInfo = jsonDiagramFile.diagram;
 
   this.shapesByLinkID = {};
 
   selectorSize = $("#" + this.selectorID).height();
+
+  if (this.diagramInfo.size.h < 200) {
+    this.diagramInfo.size.h = 200;
+  }
   if (this.diagramInfo.size.h < selectorSize) {
     $("#" + this.selectorID).css('height', this.diagramInfo.size.h + 20 + "px");
     $("#" + this.canvasID).css('height', this.diagramInfo.size.h + "px");
   }
 
-  this.diagramShapes = [];
-  _.each(jsonDiagramFile.shapes, function (shape) {
-    diagramShape = new DiagramShape(shape, this.getStyleForItem(shape));
-    this.diagramShapes.push(diagramShape);
-    this.shapesByLinkID[shape.link] = diagramShape;
-  }.bind(this));
+  this.loadShapesFromJSON(jsonDiagramFile);
+  this.loadJoinersFromJSON(jsonDiagramFile);
 
-  this.joiners = [];
-  _.each(jsonDiagramFile.joiners, function (j) {
-    this.joiners.push(new DiagramJoiner(j, this.getStyleForItem(j)));
-  }.bind(this));
+  $("body").data('diagram' + diagramID, this);
+  $("#" + this.selectorID).attr('data-diagramid', diagramID);
+
 
   this.canvas = document.getElementById(this.canvasID);
 
-  $("body").data('diagram' + diagramID, this);
-  //console.log("selectorID", this.selectorID, diagramID);
-  $("#" + this.selectorID).attr('data-diagramid', diagramID);
 
-  this.searchID = this.canvasID + '-search';
-  this.createNavigationBar(diagramID, "ui-corner-all");
-  this.initDiagramNavigation("#" + $(this.canvas).parent().attr('id'));
-
-
-  $("#" + this.searchID).keyup(function () {
-    var value = $("#" + this.searchID).val();
-    this.createRenderContext();
-    this.camera.update();
-    this.tick();
-  }.bind(this));
+  this.setUpNavigationBar(diagramID);
 
   if (cwAPI.isUnderIE9()) {
     G_vmlCanvasManager.initElement(this.canvas);
     this.ctx = this.canvas.getContext('2d');
-    this.ctx.canvas.height = 400;
   } else {
     this.ctx = $('#' + this.canvasID)[0].getContext('2d');
 
@@ -68,16 +52,21 @@ var DiagramCanvas = function (diagramID, jsonDiagramFile, selectorID) {
   this.camera = new CanvasCamera(this.canvas, this.diagramInfo.size, this.tick.bind(this));
   this.camera.scaleIsMoreThanScaleMax = function (camera) {};
 
-  //console.log('camera', this.camera.scale);
   this.setInitPositionAndScale();
   this.lastScaleOnRender = this.camera.scale;
 
-
-
   this.createRenderContext();
-  //console.log('dc setup', this.camera, this.camera.scale);
   this.tick();
 
+  this.setUpKeyEvents();
+  this.setUpMouseEvents();
+  this.setUpResize();
+
+
+};
+
+
+DiagramCanvas.prototype.setUpMouseEvents = function () {
   $(this.canvas).mousemove(function (e) {
     this.mouseMove(e);
   }.bind(this));
@@ -85,18 +74,53 @@ var DiagramCanvas = function (diagramID, jsonDiagramFile, selectorID) {
   $(this.canvas).mouseout(function (e) {
     this.shapeToolTipRemove();
   }.bind(this));
+  this.camera.onClick = function (e) {};
+};
 
+DiagramCanvas.prototype.setUpResize = function () {
   $(window).resize(function () {
     this.updateSize();
     this.setInitPositionAndScale();
     this.camera.update();
     this.tick();
   }.bind(this));
+};
 
+DiagramCanvas.prototype.setUpKeyEvents = function () {
+  this.isSKeyPressed = false;
+  $("body").keydown(function (e) {
+    if (e.keyCode === 83) {
+      this.isSKeyPressed = true;
+      this.strokeShapeIfMouseIsOver();
+    }
+  }.bind(this));
+  $("body").keyup(function (e) {
+    if (e.keyCode === 83) {
+      this.isSKeyPressed = false;
+      this.tick();
+    }
+  }.bind(this));
+};
 
+DiagramCanvas.prototype.loadShapesFromJSON = function (jsonDiagramFile) {
+  var diagramShape;
 
-  this.camera.onClick = function (e) {};
+  this.diagramShapes = [];
+  this.reverseShapes = [];
+  _.each(jsonDiagramFile.shapes, function (shape) {
+    diagramShape = new DiagramShape(shape, this.getStyleForItem(shape));
+    this.diagramShapes.push(diagramShape);
+    this.reverseShapes.push(diagramShape);
+    this.shapesByLinkID[shape.link] = diagramShape;
+  }.bind(this));
+  this.reverseShapes.reverse();
+};
 
+DiagramCanvas.prototype.loadJoinersFromJSON = function (jsonDiagramFile) {
+  this.joiners = [];
+  _.each(jsonDiagramFile.joiners, function (j) {
+    this.joiners.push(new DiagramJoiner(j, this.getStyleForItem(j)));
+  }.bind(this));
 };
 
 DiagramCanvas.prototype.updateSize = function () {
@@ -124,29 +148,55 @@ DiagramCanvas.prototype.setInitPositionAndScale = function () {
   if (diffHeight > 0 && scaleX > scaleY) {
     this.camera.translate.set(0, diffHeight / 2);
   }
+  this.updateSearchBoxPosition();
 };
 
+
+DiagramCanvas.prototype.isMouseOnAShape = function () {
+  var shapeGhost, scale;
+  shapeGhost = null;
+  scale = 1 / this.camera.scale * this.camera.renderScale;
+  $.each(this.reverseShapes, function (i, shape) {
+    shapeGhost = {};
+    shapeGhost.w = shape.shape.w * (scale);
+    shapeGhost.h = shape.shape.h * (scale);
+    shapeGhost.x = (shape.shape.x * (scale)) + this.camera.translate.x;
+    shapeGhost.y = (shape.shape.y * (scale)) + this.camera.translate.y;
+    shapeGhost.shape = shape;
+    if (this.pointInBox(this.camera.mousePosition, shapeGhost) === true) {
+      //this.ShapeToolTip(shape, e, this);
+      return false;
+    }
+  }.bind(this));
+  return shapeGhost;
+};
+
+
+DiagramCanvas.prototype.strokeShapeIfMouseIsOver = function () {
+  var shapeGhost, shape, symbol, cwObject;
+  //this.shapeToolTipRemove();
+  this.ctx.strokeStyle = "#004488";
+  this.ctx.lineWidth = 2;
+  shapeGhost = this.isMouseOnAShape();
+  if (shapeGhost !== null) {
+    shapeGhost.name = "NAME_NOT_SET";
+    shape = new DiagramShape(shapeGhost, shapeGhost.shape.paletteEntry);
+    symbol = shape.getSymbol();
+    shape.drawSymbolPath(this.ctx, symbol);
+    this.ctx.stroke();
+    cwObject = shape.shape.shape.shape.cwObject;
+    _.each(cwObject.associations.diagramExploded, function (diagram) {
+      //console.log(diagram.objectID);
+    });
+  }
+  this.ctx.lineWidth = 1;
+};
+
+
 DiagramCanvas.prototype.mouseMove = function (e) {
-  var shapeGhost = {};
-  //console.log('mouse move', this.camera.scaledCanvasMousePosition);
-  if (this.camera.isShiftPressed) {
-    this.shapeToolTipRemove();
-    this.ctx.strokeStyle = "#000000";
-    _.each(this.diagramShapes, function (shape) {
-      shapeGhost.w = shape.shape.w * (1 / this.camera.scale * this.camera.renderScale);
-      shapeGhost.h = shape.shape.h * (1 / this.camera.scale * this.camera.renderScale);
-      //shape.shape.w * 1/this.camera.renderScale, shape.shape.h * 1/this.camera.renderScale
-      shapeGhost.x = (shape.shape.x * (1 / this.camera.scale * this.camera.renderScale)) + this.camera.translate.x; //+ (1 / this.camera.scale);
-      shapeGhost.y = (shape.shape.y * (1 / this.camera.scale * this.camera.renderScale)) + this.camera.translate.y; //+ (1 / this.camera.scale);
-      //console.log(this.camera.mouseInDrawZone, shapeGhost);
-      //var mouseIn
-      if (this.pointInBox(this.camera.mouseInDrawZone, shapeGhost) === true) {
-        //console.log('on', shape.shape.name, shape);
-        this.ShapeToolTip(shape, e, this);
-        this.ctx.strokeRect(shapeGhost.x, shapeGhost.y, shapeGhost.w, shapeGhost.h);
-        return false;
-      }
-    }.bind(this));
+  if (this.isSKeyPressed) {
+    this.tick();
+    this.strokeShapeIfMouseIsOver();
   }
 };
 
@@ -156,13 +206,6 @@ DiagramCanvas.prototype.createRenderContext = function () {
   if (cwAPI.isUnderIE9()) {
     return;
   }
-
-  //  if (this.lastScaleOnRender !== this.camera.scale){
-  //    console.log(this.camera.scale / this.lastScaleOnRender);
-  //  }
-  //this.camera.renderScale = 
-  //this / 3.113858165256994;
-  //  console.log('create context', this.camera.scale, this.camera.translate, this.camera.canvasScaledSize);
   this.lastScaleOnRender = this.camera.scale;
 
   this.renderCanvas = document.createElement('canvas');
@@ -171,34 +214,17 @@ DiagramCanvas.prototype.createRenderContext = function () {
 
   }
   renderContext = this.renderCanvas.getContext('2d');
-  /*  canvas.setAttribute("width", CANVAS_WIDTH);
-  canvas.setAttribute("height", CANVAS_HEIGHT);
-*/
-
-  //this.camera.renderScale = 2;
   this.renderCanvas.width = this.diagramInfo.size.w * this.camera.renderScale;
   this.renderCanvas.height = this.diagramInfo.size.h * this.camera.renderScale;
-
-
-  //this.renderCanvas.width = this.camera.canvasScaledSize.x;
-  //this.renderCanvas.height = this.camera.canvasScaledSize.y;
-  //this.renderCanvas.width = this.canvas.width;
-  //this.renderCanvas.height = this.camera.canvasScaledSize.y;
   renderContext = this.renderCanvas.getContext('2d');
-
-
   this.camera.clearContext(renderContext);
-  //renderContext.scale = 0.25;
-  //renderContext.scale = 1;
-  renderContext.save();
-  //renderContext.scale = 0.5;
-  //renderContext.translate(-this.camera.renderTranslate.x, -this.camera.renderTranslate.y);
-  renderContext.scale(this.camera.renderScale, this.camera.renderScale);
-  //renderContext.scale(1 / this.camera.scale, 1 / this.camera.scale);
-  //renderContext.translate(this.camera.translate.x, this.camera.translate.y)
-  searchValue = $("#" + this.searchID).val();
+
+  //renderContext.lineWidth = 1;
   //renderContext.strokeStyle = "#FF0000";
-  //renderContext.strokeRect(0, 0, this.diagramInfo.size.w, this.diagramInfo.size.h);
+  //renderContext.strokeRect(0, 0, this.diagramInfo.size.w * this.camera.renderScale, this.diagramInfo.size.h * this.camera.renderScale);
+  renderContext.save();
+  renderContext.scale(this.camera.renderScale, this.camera.renderScale);
+  searchValue = $("#" + this.searchID).val();
   _.each(this.diagramShapes, function (shape) {
     shape.draw(renderContext, searchValue);
   }.bind(this));
@@ -211,6 +237,7 @@ DiagramCanvas.prototype.createRenderContext = function () {
 
 
 DiagramCanvas.prototype.tick = function () {
+  this.shapeToolTipRemove();
   if (cwAPI.isUnderIE9()) {
     this.tickIE();
   } else {
@@ -288,95 +315,6 @@ DiagramCanvas.prototype.pointInBox = function (point, box) {
   return true;
 };
 
-
-
-/*DiagramCanvas.prototype.updateNavigationBarPosition = function () {
-  var translate, navigationBarPositionLeft;
-  translate = 0;//32;
-  console.log($("#" + this.canvasID).offset(), $("#" + this.canvasID).width());
-  navigationBarPositionLeft = $("#" + this.canvasID).offset().left + $("#" + this.canvasID).width() - translate;
-  //$("#" + this.selectorID + " ul.diagramNavigation").css('left', navigationBarPositionLeft);
-};*/
-
-DiagramCanvas.prototype.createNavigationBar = function (diagramID, corner) {
-  var output, diagramNavigationID;
-  output = [];
-  diagramNavigationID = "diagramNavigation-diagram-" + diagramID;
-  output.push("<ul id='" + diagramNavigationID + "' class='diagramNavigation " + corner + "'>");
-  output.push("<li class='diagramNavigation-li'><a class='diagram-zoomin diagram-zoom tooltip-me" + corner + "' title='<div class=\"simpleText\">", $.i18n.prop("diagram_navigation_zoom_in"), "</div>'>", $.i18n.prop("diagram_navigation_zoom_in"), "</a></li>");
-  output.push("<li class='diagramNavigation-li'><a class='diagram-zoomout diagram-zoom tooltip-me" + corner + "' title='<div class=\"simpleText\">", $.i18n.prop("diagram_navigation_zoom_out"), "</div>'>", $.i18n.prop("diagram_navigation_zoom_out"), "</a></li>");
-  output.push("<li class='diagramNavigation-li'><a class='diagram-resize diagram-zoom tooltip-me" + corner + "' title='<div class=\"simpleText\">", $.i18n.prop("diagram_navigation_resize"), "</div>'>", $.i18n.prop("diagram_navigation_resize"), "</a></li>");
-
-  output.push("<li class='diagramNavigation-li'><a class='diagram-search diagram-zoom tooltip-me" + corner + "' title='<div class=\"simpleText\">", $.i18n.prop("diagram_navigation_search"), "</div>'>", $.i18n.prop("diagram_navigation_search"), "</a></li>");
-  output.push("</ul>");
-  $(this.canvas).before(output.join(''));
-  $("#" + diagramNavigationID + ' a.diagram-search').before("<input class='search-input-for-diagrams' id='" + this.searchID + "'/>");
-
-  //var searchPosLeft = $("#" + diagramNavigationID + ' a.diagram-search').offset().left - $('#' + this.searchID).width() + $('#'+ diagramNavigationID).offset().left;
-  //console.log(searchPosLeft, $("#" + diagramNavigationID + ' a.diagram-search').offset(), $('#' + this.searchID).width(), $('#'+ diagramNavigationID).offset());
-  $('#' + this.searchID).hide();
-
-  //$('#' + this.searchID).css('position', 'absolute').css('right', $('#' + this.searchID).offset().left);// ).addClass('ui-corner-all');
-
-};
-
-DiagramCanvas.prototype.initDiagramNavigation = function () {
-  var mainSelector;
-  
-  mainSelector = "#" + this.selectorID;
-  $(mainSelector + ' a.diagram-zoomin').button({
-    "icons": {
-      "primary": 'ui-icon-zoomin'
-    },
-    "text": false
-  });
-  $(mainSelector + ' a.diagram-zoomout').button({
-    "icons": {
-      "primary": 'ui-icon-zoomout'
-    },
-    "text": false
-  });
-  $(mainSelector + ' a.diagram-resize').button({
-    "icons": {
-      "primary": 'ui-icon-newwin'
-    },
-    "text": false
-  });
-  $(mainSelector + ' a.diagram-search').button({
-    "icons": {
-      "primary": 'ui-icon-search'
-    },
-    "text": false
-  });
-  $(mainSelector + ' a.diagram-zoom').tooltip({
-    "delay": 250,
-    "showURL": false
-  });
-  $(mainSelector + ' a.diagram-zoomin span').click(function () {
-    this.camera.scale *= 0.9;
-    this.camera.update();
-    this.tick();
-    return false;
-  }.bind(this));
-  $(mainSelector + ' a.diagram-zoomout span').click(function () {
-    this.camera.scale *= 1.1;
-    this.camera.update();
-    this.tick();
-    return false;
-  }.bind(this));
-  $(mainSelector + ' a.diagram-resize span').click(function () {
-    this.setInitPositionAndScale();
-    this.tick();
-    return false;
-  }.bind(this));
-  $(mainSelector + ' a.diagram-search span').click(function () {
-    $('#' + this.searchID).toggle('fast');
-    return false;
-  }.bind(this));
-
-  //this.updateNavigationBarPosition();
-
-};
 
 DiagramCanvas.prototype.shapeToolTipRemove = function () {
   $('.tooltip-shape-canvas').remove();

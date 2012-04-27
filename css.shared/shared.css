@@ -4,14 +4,12 @@
 }
 
 canvas{
-	border:2px solid #FAFAFA;
+	border:2px solid #EEEEEE;
 }
 
 canvas.isSelected{
-	border-color:#EEE;
+	border-color:#A2D0EA;
 }
-
-
 
 .search-input-for-diagrams{
 	height:22px;
@@ -28,14 +26,10 @@ canvas.isSelected{
 
 
 ul.diagramNavigation{
-
 	padding:5px;
 	padding-top:10px;
 	margin:0px;
-/*	position:absolute;*/
-	float:right;
-/*	top:0px;
-	*/
+	position:absolute;
 	border:none;
 	z-index:50;
 }
@@ -67,14 +61,11 @@ canvas {display: block;}
 	position:fixed;
 }
 .diagram-zone{
-	width:100%;
+	width:95%;
+	margin:10px auto 10px auto;
 	height:100%;
 }
 
-span.accordion{
-	display:inline-block;
-	margin-right:10px;
-}
 
 
 
@@ -221,4 +212,50 @@ li.horizontal-list{
 
 li.horizontal-list div{
 	text-align:center;
+}
+
+ul.cw-accordion-header{
+  margin:0px;
+  padding:0px;
+}
+
+li.cw-accordion-header{
+	margin:10px;
+	list-style:none;
+}
+
+div.cw-accordion-header{
+   /*padding:10px;*/
+   padding-left: 10px;
+   text-align:left;
+}
+
+a.cw-accordion-header{
+ font-size:14px;  
+}
+
+ul.cw-accordion-content{
+	margin:0px;
+}
+
+div.cw-accordion-content{
+	/*padding:10px 0px 10px 0px;*/
+	padding: 10px;
+}
+
+span.accordion{
+	display:inline-block;
+	margin-right:10px;
+	margin-top:10px;
+}
+
+/* cw-edit-property-options */
+ul.cw-edit-property-options{
+	margin:0px;
+	padding: 0px;
+	display: inline-block;
+}
+
+ul.cw-edit-property-options li, ul.cw-edit-property-options input{
+	display: inline-block;
 }

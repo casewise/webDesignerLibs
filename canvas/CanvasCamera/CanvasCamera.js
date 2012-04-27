@@ -30,18 +30,6 @@ var CanvasCamera = function (canvas, diagramSize, tickCallback) {
   this.mousePosition = new Point();
   this.mouseWheelRepeat = 0;
 
-  this.isShiftPressed = false;
-  $("body").keydown(function (e) {
-    if (e.keyCode === 16) {
-      this.isShiftPressed = true;
-    }
-  }.bind(this));
-  $("body").keyup(function (e) {
-    if (e.keyCode === 16) {
-      this.isShiftPressed = false;
-    }
-  }.bind(this));
-
   this.initialTranslate = new Point();
   this.canvasScaledSize.set(this.canvas.width * this.scale, this.canvas.height * this.scale);
 
@@ -381,8 +369,6 @@ CanvasCamera.prototype.mouseMove = function (e) {
     this.tickCallback();
   }
 
-  if (this.isShiftPressed) {
-  }
 };
 
 CanvasCamera.prototype.updateScaledSize = function () {

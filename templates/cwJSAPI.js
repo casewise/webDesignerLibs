@@ -1,14 +1,44 @@
-/*global DiagramCanvas:true, alert:true */
+/*global DiagramCanvas:true, alert:true, cwConfigs */
 
 var cwAPI = {};
+cwAPI.SharePoint = {};
+cwAPI.appliedLayouts = [];
 
 cwAPI.isUndefined = function (o) {
 	return typeof (o) === "undefined";
 };
 
+cwAPI.SharePoint.createSharepointMenuSeparator = function () {
+	return '<span class="s4-nothome s4-bcsep s4-titlesep"><span class="s4-clust ms-ltviewselectormenuseparator" style="height:11px;width:11px;position:relative;display:inline-block;overflow:hidden;"><img style="border-width:0px;position:absolute;left:-0px !important;top:-585px !important;" alt=":" src="/_layouts/images/fgimg.png"></span></span>';
+};
+
+cwAPI.SharePoint.createSharepointMenu = function (menuName, menuLink, level) {
+	return '<h' + level + '><a href="' + menuLink + '">' + menuName + '</a></h' + level + '>';
+};
+
+cwAPI.SharePoint.appendMenuTitle = function (menuName, menuLink, level, lastLevel) {
+	var output = [];
+	output.push(cwAPI.SharePoint.createSharepointMenu(menuName, menuLink, level));
+	if (!lastLevel) {
+		output.push(cwAPI.SharePoint.createSharepointMenuSeparator());
+	}
+	$("td.s4-titletext").children().last().before(output.join(''));
+};
+
+
+cwAPI.createLinkForSingleView = function (view, id) {
+	return "index." + cwConfigs.SITE_LINK_EXTENTION + "?cwtype=single&cwview=" + view + "&cwid=" + id;
+};
+
+cwAPI.createLinkForIndexView = function (view) {
+	return "index." + cwConfigs.SITE_LINK_EXTENTION + "?cwtype=index&cwview=" + view;
+};
+
+
 
 cwAPI.putPropertiesInTable = function (output, pName, displayName, object, propertyType, type) {
-	var value = object[pName];
+	console.log(object);
+	var value = object.properties[pName];
 	if (!_.isUndefined(type)) {
 		value = value.substring(0, 10);
 	}
@@ -32,7 +62,7 @@ function getDiagram(dID, selectorID, callback) {
 	$('#' + selectorID).append(el);
 	//$('#' + selectorID).height($(window).height() + "px");
 	$('#' + el.id).addClass("diagram-canvas");
-	$.getJSON('../webdesigner/generated/diagram/json/diagram' + dID + '.json', function (jsonDiagramFile) {
+	$.getJSON(cwConfigs.SITE_MEDIA_PATH + 'webdesigner/generated/diagram/json/diagram' + dID + '.' + cwConfigs.JSON_EXTENTION, function (jsonDiagramFile) {
 		//console.log("get json");
 		var diagramCanvas = new DiagramCanvas(dID, jsonDiagramFile, selectorID);
 		if (!_.isUndefined(callback)) {
@@ -120,15 +150,16 @@ function doActionsForSingle() {
 		layout.applyCSS();
 	});
 
-
+	$('ul.properties-zone-area').css('margin', '0px').css('padding', '0px');
+/*
 	$('li.property-title').addClass('ui-corner-top ui-widget ui-widget-header');
 	$('li.property-value').addClass('ui-corner-bottom');
 	$('li.property-value').addClass('ui-widget ui-widget-content');
 
 	$('li.property-title').css('text-align', 'center');
-	$('li.property-details').css('padding', '5px');
+	//$('li.property-details').css('padding', '5px');
 
-	$('li.property-box').css('margin', '5px');
+	//$('li.property-box').css('margin', '5px');
 
 	$('li.property-box-normal').css('width', '200px').css('display', 'inline-block');
 
@@ -138,7 +169,7 @@ function doActionsForSingle() {
 	$('li.property-name').addClass('ui-corner-all ui-widget ui-widget-header');
 	$('li.property-name').css('text-align', 'center').css('list-style', 'none').css('font-size', '2.5em').css('margin', '5px');
 
-	removeULBullets();
+
 
 	if ($.browser.msie && $.browser.version === 7) {
 		//$('li.property-box').css('width', '100%');
@@ -146,7 +177,7 @@ function doActionsForSingle() {
 		$('li.property-box-memo').css('width', '100%');
 		$('li.association-box').css('width', '100%');
 		//$('ul.properties-zone-area').css('width', '100%');
-	}
+	}*/
 
 }
 
@@ -155,62 +186,6 @@ function doActionForCustomSingle() {}
 function doActionForCustomSingle() {}
 
 
-// transform un li en accordion
-cwAPI.setAccordion = function (selector, childSelector, removeIfEmptyChildren) {
-	var expandClass, collapseClass, collapse, expand, ul, li, span, content;
-
-	collapseClass = "ui-icon-circle-plus";
-	expandClass = "ui-icon-circle-minus";
-
-	collapse = "<span class='accordion ui-icon " + collapseClass + "'></span>";
-	expand = "<span class='accordion ui-icon " + expandClass + "'/>";
-
-	//console.log(selector + " " + childSelector)
-	$("li." + selector + " " + childSelector).hide();
-
-	$("div." + selector).each(function (i, div) {
-
-		//removeIfEmptyChildren = false;
-		if (!_.isUndefined(removeIfEmptyChildren) && removeIfEmptyChildren) {
-			if ($(div).next().length === 0) {
-				li = $(div).parent();
-				ul = li.parent();
-				li.remove();
-				if (ul.children().length === 0) {
-					ul.remove();
-				}
-			}
-		}
-
-
-		if ($(div).next().length > 0) {
-			$(div).children("a").before(collapse);
-
-			$(div).click(function () {
-				span = $(this).children('span.accordion');
-				content = span;
-				if (span.hasClass(collapseClass)) {
-					span.removeClass(collapseClass);
-					span.addClass(expandClass);
-				} else {
-					span.removeClass(expandClass);
-					span.addClass(collapseClass);
-				}
-				$(this).next().toggle('slow');
-			});
-
-			$(div).hover(function () {
-				$(this).css('cursor', 'pointer');
-			});
-		} else {
-			$(div).children("a").before(expand);
-		}
-	});
-
-	/*	if ($(selector).length > 0 && $(selector).html().length === 0) {
-
-	}*/
-};
 
 
 
@@ -291,11 +266,8 @@ function doLayoutsSpecialActions() {
 
 	//console.log();
 	_.each(cwAPI.appliedLayouts, function (layout) {
-
 		layout.applyCSS();
 	});
-
-
 
 	$('.navigation-icon').addClass('ui-icon ui-icon-info');
 	$('.navigation-icon').click(function () {
@@ -309,8 +281,9 @@ function doLayoutsSpecialActions() {
 }
 
 cwAPI.isUnderIE9 = function () {
-	//console.log($.browser.version);
-	if ($.browser.msie && $.browser.version < 9) {
+	var version = Math.floor($.browser.version);
+	//console.log(version);
+	if ($.browser.msie && version < 9) {
 		//alert('under ie 9');
 		return true;
 	}
@@ -346,17 +319,17 @@ function getCSSClassesDependingOnChildren(_hasChildrenCondition, _nodeName, _isA
 }
 
 
-function setToolTipsOnTitles() {
+cwAPI.setToolTipsOnTitles = function () {
 	$('.tooltip-me').mouseover(function () {
-		$(this).css('cursor', 'help');
+//		$(this).css('cursor', 'help');
 	});
 
 	$('.tooltip-me-left').mouseover(function () {
-		$(this).css('cursor', 'help');
+//		$(this).css('cursor', 'help');
 	});
 
 	$('.tooltip-me-custom').mouseover(function () {
-		$(this).css('cursor', 'help');
+//		$(this).css('cursor', 'help');
 	});
 
 	$('.tooltip-me').tooltip({
@@ -373,7 +346,7 @@ function setToolTipsOnTitles() {
 		fade: 250,
 		extraClass: 'tooltip-custom'
 	});
-}
+};
 
 
 function hasChildren(_o) {
@@ -393,7 +366,7 @@ function hasChildren(_o) {
 
 
 
-cwAPI.appliedLayouts = [];
+
 
 
 var LayoutListBoxDetailed = function (css, ogsName) {
@@ -445,7 +418,7 @@ LayoutListBoxDetailed.prototype.drawAssociations = function (output, _associatio
 };
 
 
-
+/*
 cwAPI.drawListBox = function (layout, output, _associationTitleText, _object, _associationKey, listBoxName, callback) {
 	var l, targetObject;
 	if (_.isUndefined(_object[_associationKey])) {
@@ -456,17 +429,17 @@ cwAPI.drawListBox = function (layout, output, _associationTitleText, _object, _a
 
 	if (targetObject.length > 0) {
 		output.push("<div class='property-box ", layout.css, "-box property-box-asso'>");
-		output.push("<ul class='property-details ", layout.css, "-details'>");
-		output.push("<li class='property-details ", layout.css, "-details property-title ", layout.css, "-title'>");
+		output.push("<ul class='property-details ", layout.css, "-details ", layout.css, "-", _object.object_id, "-details'>");
+		output.push("<li class='property-details ", layout.css, "-details property-title ", layout.css, "-title ", layout.css, "-", _object.object_id, "-details'>");
 		output.push(listBoxName);
 		output.push("</li>");
-		output.push("<li class='property-details property-value ", layout.css, "-details ", layout.css, "-value'>");
+		output.push("<li class='property-details property-value ", layout.css, "-details ", layout.css, "-value ", layout.css, "-", _object.object_id, "-details'>");
 		l = new LayoutList(layout.css, this.objectTypeName, layout.setLink);
 		l.drawAssociations(output, _associationTitleText, _object, _associationKey, callback);
 		output.push("</li>");
 		output.push("</ul></div>");
 	}
-};
+};*/
 
 var LayoutListBoxObjectGroupName = function (_css, _objectTypeName, _objectGroupName, setLink) {
 	this.css = _css;
@@ -482,62 +455,8 @@ LayoutListBoxObjectGroupName.prototype.drawAssociations = function (output, _ass
 };
 
 
-var LayoutListBox = function (_css, _objectTypeName, setLink) {
-	this.css = _css;
-	this.objectTypeName = _objectTypeName;
-	this.setLink = setLink;
-	cwAPI.appliedLayouts.push(this);
-};
-LayoutListBox.prototype.applyCSS = function () {};
 
-LayoutListBox.prototype.drawAssociations = function (output, _associationTitleText, _object, _associationKey, callback) {
-	cwAPI.drawListBox(this, output, _associationTitleText, _object, _associationKey, _associationTitleText, callback);
-};
 
-var LayoutList = function (_css, _objectTypeName, setLink, parent) {
-	this.css = _css;
-	this.objectTypeName = _objectTypeName;
-	this.setLink = setLink;
-	this.parent = parent;
-	cwAPI.appliedLayouts.push(this);
-};
-LayoutList.prototype.applyCSS = function () {};
-
-LayoutList.prototype.drawAssociations = function (output, _associationTitleText, _object, _associationKey, callback) {
-	var itemDisplayName, titleOnMouseOver;
-	if (_.isUndefined(_object[_associationKey])) {
-		//console.log('draw association _associationKey[', _associationKey, '] don\'t exists for ', _object);
-		return;
-	}
-	if (_object[_associationKey].length > 0) {
-		output.push("<ul class='association-link-box association-link-box-", this.css, " ", this.css, "'>");
-		_.each(_object[_associationKey], function (_child) {
-			//console.log(this.parent, _object, _child);
-			if (!_.isUndefined(this.parent)) {
-				if (this.parent.link_id === _child.link_id) {
-					return;
-				}
-			}
-
-			//console.log(_child);
-			titleOnMouseOver = "";
-			if (!_.isUndefined(_child.description)) {
-				titleOnMouseOver = _child.description;
-			}
-			itemDisplayName = "<a class='" + this.css + " tooltip-me' href='" + _child.link_id + "' title='" + titleOnMouseOver + "'>" + _child.name + "</a>";
-			if (this.setLink === false) {
-				itemDisplayName = "<span class='" + this.css + "'>" + _child.name + "</span>";
-			}
-
-			output.push("<li class='association-link association-link-", this.css, " ", this.css, "'><div class='", this.css, "'>", itemDisplayName, "</div>");
-			if (!_.isUndefined(callback)) {
-				callback(output, _child);
-			}
-			output.push("</li>");
-		}.bind(this));
-		output.push("</ul>");
-	}
-};
 
 var LayoutDataCenter = function (css, _technologyID, _emplacementID) {
 	this.css = css;
@@ -582,67 +501,34 @@ LayoutDataCenter.prototype.applyCSS = function () {
 
 
 
-var LayoutDiagram = function (_css, _objectTypeName) {
-	this.css = _css;
-	this.objectTypeName = _objectTypeName;
-	cwAPI.appliedLayouts.push(this);
-	this.diagrams = [];
 
+cwAPI.transformTabToVertical = function (selectorID) {
+	$("#" + selectorID).tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+	$("#" + selectorID + " li.tab-header").removeClass('ui-corner-top').addClass('ui-corner-left');
+	$("#" + selectorID + " .ui-tabs-panel").addClass('ui-widget ui-widget-content');
 };
-LayoutDiagram.prototype.applyCSS = function () {
 
 
-	_.each(this.diagrams, function (d) {
-		//console.log(d);
-		var diagramSelectorID = "diagram-" + this.css + "-" + d.object_id;
 
+cwAPI.loadTopMenu = function () {
+	var pagesURL, output;
 
-		$('#' + diagramSelectorID).prev().hover(function (e) {
-			$(this).css('cursor', 'pointer');
+	pagesURL = cwConfigs.SITE_MEDIA_PATH + "webdesigner/generated/pages." + cwConfigs.JSON_EXTENTION;
+	cwAPI.getJSONFile(pagesURL, function (pages) {
+
+		output = [];
+		output.push('<ul class="cwMenuTop">');
+		_.each(pages.index, function (page) {
+			output.push('<li><a href="', page.link, '">', page.name, '</a></li>');
 		});
+		output.push('</ul>');
+		$('#top_of_page').before(output.join(''));
 
-		// open by default
-		//getDiagram(d.object_id, diagramSelectorID, function () {});
-		// toggle on click		
-		$('#' + diagramSelectorID).prev().click(function (e) {
-			//console.log($(this));
-			var htmlContent = $('#' + diagramSelectorID).html();
-			//console.log('htmlContent', htmlContent);
-			if (htmlContent === "") {
-				$('#' + diagramSelectorID).show('fast', function () {
-					$('#' + diagramSelectorID).height('400px');
-					$('#' + diagramSelectorID).html('');
-
-					getDiagram(d.object_id, diagramSelectorID, function () {});
-				});
-			} else {
-				$('#' + diagramSelectorID).hide('fast');
-				$('#' + diagramSelectorID).html('');
-			}
-		});
-	}.bind(this));
-
+	}, cwAPI.errorOnLoadPage);
 };
 
-LayoutDiagram.prototype.drawAssociations = function (output, _associationTitleText, _object, _associationKey, callback) {
-	if (_.isUndefined(_object[_associationKey])) {
-		//console.log('draw association _associationKey[', _associationKey, '] don\'t exists for ', _object);
-		return;
-	}
-	if (_object[_associationKey].length > 0) {
-		output.push("<ul class='association-link-box association-link-box-", this.css, " ", this.css, "'>");
-		_.each(_object[_associationKey], function (_child) {
-			output.push("<li class='" + this.css + "'><a class='diagram-toggle-link'>", _child.name, "</a>", "<div id='diagram-", this.css, "-", _child.object_id, "' class='diagram-zone' data-diagramid='", _child.object_id, "'></div>");
-			//console.log(_child);
-			this.diagrams.push(_child);
-
-			if (!_.isUndefined(callback)) {
-				//utput.push('<li class="children-', this.css, '">');
-				callback(output, _child, _object);
-
-			}
-		}.bind(this));
-		output.push('</li>');
-		output.push("</ul>");
-	}
+cwAPI.hideLoadingImage = function () {
+	$('.cwloading').hide();
 };
+
+
