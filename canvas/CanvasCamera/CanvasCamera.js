@@ -11,8 +11,6 @@ window.requestAnimFrame = (function () {
 
 
 var CanvasCamera = function (canvas, diagramSize, tickCallback) {
-
-  //this.diagramCanvas = _diagramCanvas;
   this.diagramSize = diagramSize;
   this.tickCallback = tickCallback;
   if (_.isUndefined(this.tickCallback)) {
@@ -35,7 +33,7 @@ var CanvasCamera = function (canvas, diagramSize, tickCallback) {
 
   this.scaleNum = 5;
 
-  this.renderScale = 1.5;
+  this.renderScale = 1;
   if (cwAPI.isUnderIE9()) {
     this.renderScale = 1;
   }
@@ -50,7 +48,7 @@ var CanvasCamera = function (canvas, diagramSize, tickCallback) {
     this.scaleFactor = 0.2;
   }
 
-  this.scaleMax = 30;
+  this.scaleMax = 60;
 
   this.scaledCanvasMousePosition = {
     "x": 0,
@@ -66,10 +64,7 @@ var CanvasCamera = function (canvas, diagramSize, tickCallback) {
   this.tickCount = 0;
   this.tickStart = 0;
 
-
-
   this.diagramCanvasIsSelected = false;
-
 
   $(this.canvas).mousedown(function (e) {
     // stop the scaling
@@ -119,11 +114,16 @@ CanvasCamera.prototype.isSelected = function () {
 CanvasCamera.prototype.hasBeenSelected = function () {
   this.diagramCanvasIsSelected = true;
   $(this.canvas).addClass("isSelected");
+  this.customHasBeenSelected();
 };
+
+CanvasCamera.prototype.customHasBeenSelected = function() {};
+CanvasCamera.prototype.customHasBeenReleased = function() {};
 
 CanvasCamera.prototype.hasBeenReleased = function () {
   this.diagramCanvasIsSelected = false;
   $(this.canvas).removeClass("isSelected");
+  this.customHasBeenReleased();
 };
 
 CanvasCamera.prototype.onClick = function (e) {};
@@ -137,7 +137,6 @@ CanvasCamera.prototype.clearContext = function (ctx) {
   if (ctxSize.y < this.canvas.height) {
     ctxSize.y = this.canvas.height;
   }
-
   ctx.clearRect(0, 0, ctxSize.x, ctxSize.y);
 };
 
@@ -166,12 +165,10 @@ CanvasCamera.prototype.focusOnPoint = function (point, finalScale) {
   var x, y;
 
   point.multiply(this.renderScale);
-  this.scale = finalScale;
+  this.scale = finalScale * this.renderScale;
   x = (this.canvas.width / 2) - (point.x * (1 / this.scale));
   y = (this.canvas.height / 2) - (point.y * (1 / this.scale));
-
   this.translate.set(x, y);
-
   this.tickCallback();
 };
 
@@ -182,7 +179,6 @@ CanvasCamera.prototype.focusOnPointAnimation = function (point, move, delay, fin
   } else {
     this.translateToDestination(point, move, finalScale * this.renderScale, delay);
   }
-
 };
 
 CanvasCamera.prototype.close = function () {
@@ -237,7 +233,6 @@ CanvasCamera.prototype.translateToKeepFocus = function (pos1, max1, scale) {
 
 CanvasCamera.prototype.focusOnMouseAfterMouseWheel = function (event) {
 
-
   /*  translate = this.translateToKeepFocus(this.mouseInDrawZone, this.canvasScaledSize, this.scale);
   this.translate.copy(translate);
   this.translate.inverse();
@@ -273,13 +268,19 @@ CanvasCamera.prototype.focusOnMouseAfterMouseWheel = function (event) {
 };
 
 
-CanvasCamera.prototype.zoom = function (e, factor) {
+CanvasCamera.prototype.zoom = function (e, direction, factor, delay, callback) {
   if (cwAPI.isUnderIE9()) {
-    this.scaleUsingFactor(e, factor);
+    this.scaleUsingFactor(e, direction, factor);
   } else {
-    this.scaleUntilVelocityIsOver(function () {
-      this.scaleUsingFactor(e, factor);
-    }.bind(this), 50);
+    this.scaleUntilVelocityIsOver(delay, function () {
+      this.scaleUsingFactor(e, direction, factor);
+      //console.log(this.mouseWheelRepeat);
+      if (this.mouseWheelRepeat === 0) {
+        if (!_.isUndefined(callback)) {
+          return callback();
+        }
+      }
+    }.bind(this));
   }
 };
 
@@ -296,13 +297,13 @@ CanvasCamera.prototype.mouseWheel = function (e, delta) {
     if (this.mouseWheelRepeat < 0) {
       this.mouseWheelRepeat = 1;
     }
-    this.zoom(e, -1);
+    this.zoom(e, -1, this.scaleFactor, 50);
   } else {
     // stop the motion if delta is reversed
     if (this.mouseWheelRepeat > 0) {
       this.mouseWheelRepeat = -1;
     }
-    this.zoom(e, 1);
+    this.zoom(e, 1, this.scaleFactor, 50);
   }
 };
 
@@ -311,14 +312,14 @@ CanvasCamera.prototype.emptyTick = function () {
 
 };
 
-CanvasCamera.prototype.scaleUsingFactor = function (event, factor) {
+CanvasCamera.prototype.scaleUsingFactor = function (event, direction, factor) {
   if (this.mouseIsDown) {
     // if mouse is pressed don't scale
     this.mouseWheelRepeat = 0;
     return;
   }
   var newScale, res = null;
-  newScale = ((this.scaleFactor * factor) + 1) * this.scale;
+  newScale = ((direction * factor) + 1) * this.scale;
   if (newScale > this.scaleMax) {
     this.scale = this.scaleMax;
     res = this.scaleIsMoreThanScaleMax(this);
@@ -349,7 +350,6 @@ CanvasCamera.prototype.updateMousePositions = function (e) {
 CanvasCamera.prototype.mouseMove = function (e) {
   // escacpe if is under mousewheel zoom/unzoom
   /*if (this.mouseWheelRepeat === 0) {
-   
   }*/
 
   if (this.mouseWheelRepeat !== 0) {
@@ -405,7 +405,7 @@ CanvasCamera.prototype.update = function () {
   this.debug();
 };
 
-CanvasCamera.prototype.scaleUntilVelocityIsOver = function (callback, delay) {
+CanvasCamera.prototype.scaleUntilVelocityIsOver = function (delay, callback) {
   var intervalID;
   intervalID = window.setInterval(function () {
     if (this.mouseWheelRepeat < 0) {
@@ -421,6 +421,35 @@ CanvasCamera.prototype.scaleUntilVelocityIsOver = function (callback, delay) {
   }.bind(this), delay);
 };
 
+
+
+CanvasCamera.prototype.translateSide = function (distance, coord ,move) {
+  if (Math.abs(distance[coord]) > move) {
+    if (distance[coord] > 0) {
+      this.translate[coord] += move;
+    } else {
+      this.translate[coord] -= move;
+    }
+  } else {
+    return true;
+  }
+  return false;
+};
+
+CanvasCamera.prototype.translateToDestinationOnly = function (destinationPoint, move, delay, callback) {
+  var distance, xOK, yOK;
+  distance = destinationPoint.getSubPoint(this.translate);
+  xOK = this.translateSide(distance, "x", move);
+  yOK = this.translateSide(distance, "y", move);
+  if (xOK && yOK) {
+    return callback();
+  } else {
+    this.tickCallback();
+    setTimeout(function () {
+      return this.translateToDestinationOnly(destinationPoint, move, delay, callback);
+    }.bind(this), delay);
+  }
+};
 
 CanvasCamera.prototype.translateToDestination = function (destinationPoint, move, finaleScale, delay) {
 
@@ -475,16 +504,6 @@ CanvasCamera.prototype.translateToDestination = function (destinationPoint, move
       }
     }
     this.currentPoint.copy(this.translate);
-    /*
-
-    if (this.mouseWheelRepeat < 0) {
-      this.mouseWheelRepeat += 1;
-    } else {
-      this.mouseWheelRepeat -= 1;
-    }
-    this.mouseWheelRepeat = Math.round(this.mouseWheelRepeat);
-    */
-
     if (this.currentPoint.equals(destinationPoint, move + 5)) {
       this.translate.copy(destinationPoint);
       this.scale = finaleScale;

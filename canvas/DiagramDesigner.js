@@ -41,7 +41,7 @@ DiagramDesignerAPI.diagramDesignerCreateIncludeNode = function (objectsKey, pale
   };
 };
 
-var DiagramDesigner = function (all_items, algo, selectorID, templateAbbreviation, parentSelector, height) {
+var DiagramDesigner = function (all_items, algo, selectorID, templateAbbreviation, parentSelector, name, height) {
 
   //console.log(parentSelector);
   this.height = height;
@@ -52,6 +52,8 @@ var DiagramDesigner = function (all_items, algo, selectorID, templateAbbreviatio
 
   this.json = {};
   this.json.diagram = {};
+  this.json.diagram.object_id = Math.random();
+  this.json.diagram.name = name;
   this.json.diagram.size = {
     "w": 100,
     "h": 100
@@ -74,7 +76,6 @@ DiagramDesigner.prototype.clean = function () {
 DiagramDesigner.prototype.setupDiagram = function () {
   this.doDesign(this.all_items);
   if (this.json.shapes.length > 0) {
-
     this.createCanvas();
   }
 };
@@ -88,11 +89,12 @@ DiagramDesigner.prototype.createCanvas = function () {
   $("#" + this.parentSelector).append('<div id="' + this.selectorID + '" class="diagram-designer-zone" data-designid="' + dID + '"></div>');
   el = document.createElement('canvas');
   el.id = this.selectorID + '-canvas';
-  $('#' + this.selectorID).css('height', this.height);
+  $('#' + this.selectorID).css('min-height', this.height);
   $('#' + this.selectorID).append(el);
   $('#' + el.id).addClass("diagram-canvas");
   this.diagramCanvas = new DiagramCanvas(dID, this.json, this.selectorID);
   $('body').data('design' + dID, this);
+  this.diagramCanvas.setInitPositionAndScale();
 
 };
 

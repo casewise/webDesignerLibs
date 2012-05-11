@@ -108,7 +108,7 @@ DiagramShape = function (shape, paletteEntry) {
 
 
 DiagramShape.prototype.drawSymbolPath = function (ctx, symbol) {
-  drawEngine = new DrawEngine(ctx);
+  var drawEngine = new DrawEngine(ctx);
   switch (symbol) {
   case 2:
     drawEngine.SH_RIGHT_ARROW(ctx, this.shape.x, this.shape.y, this.shape.w, this.shape.h);
@@ -145,7 +145,7 @@ DiagramShape.prototype.getSymbol = function () {
     symbol = this.shape.customSymbol;
   }
   return symbol;
-}
+};
 
 
 DiagramShape.prototype.drawSymbol = function (ctx) {
@@ -301,7 +301,6 @@ DiagramShape.prototype.drawText = function (ctx, text, style) {
 DiagramShape.prototype.draw = function (ctx, searchValue) {
   var alpha, textColor, textStyle;
 
-
   alpha = 1;
   if (!_.isUndefined(searchValue) && searchValue.length > 1 && this.shape.name.toLowerCase().indexOf(searchValue.toLowerCase()) === -1) {
     alpha = 0.125;
@@ -309,8 +308,6 @@ DiagramShape.prototype.draw = function (ctx, searchValue) {
   ctx.globalAlpha = alpha;
   ctx.fillStyle = "#000000";
   ctx.strokeStyle = "#000000";
-
-
   // draw shape
   // background
   // custom style
@@ -320,8 +317,6 @@ DiagramShape.prototype.draw = function (ctx, searchValue) {
   // draw symbol
   this.drawSymbol(ctx);
   this.drawRegions(ctx);
-
-
   if (!_.isUndefined(this.paletteEntry) && this.paletteEntry && this.paletteEntry.displayText) {
     // use custom class if exists
     textStyle = this.paletteEntry.style;

@@ -5,7 +5,7 @@ $(function(){
 	if ($(location).attr('href').indexOf('?') != -1){
 		var arguments = location.href.split('?');
 		var id = arguments[1];
-		getDiagram(id, 'diagram-canvas', function(diagramCanvas){
+		cwAPI.getDiagram(id, 'diagram-canvas', function(diagramCanvas){
 			$("#diagram-canvas").height('600px');
 			diagramCanvas.updateSize();
 			diagramCanvas.setInitPositionAndScale();

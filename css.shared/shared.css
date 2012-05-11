@@ -3,11 +3,19 @@
 	padding:0px;
 }
 
-canvas{
+/*canvas{
 	border:2px solid #EEEEEE;
 }
 
-canvas.isSelected{
+canvas.isSelected, div.diagram-zone.isSelected{
+	border-color:#A2D0EA;
+}
+*/
+div.diagram-zone, div.diagram-designer-zone{
+	border:2px solid #EEEEEE;
+}
+
+div.diagram-zone-isSelected, div.diagram-designer-zone-isSelected{
 	border-color:#A2D0EA;
 }
 
@@ -16,7 +24,7 @@ canvas.isSelected{
 }
 
 .diagramNavigation-li a{
-		width:22px;
+	width:22px;
 	height:22px;
 }
 
@@ -24,14 +32,19 @@ canvas.isSelected{
 	list-style-image:none!important;
 }
 
+div.diagram-zone canvas, div.diagram-designer-zone canvas{
+		float:left;
+}
 
 ul.diagramNavigation{
+	display:none;
 	padding:5px;
 	padding-top:10px;
 	margin:0px;
 	position:absolute;
 	border:none;
 	z-index:50;
+	float:left;
 }
 
 .diagramNavigation li{
@@ -53,12 +66,13 @@ ul.diagramNavigation{
 	margin-bottom:2px;
 	list-style:none;
 }
-
-canvas {display: block;}
+/*
+canvas {display: block;}*/
 
 #debugger{
-	display:none;
+	display:none !important;
 	position:fixed;
+
 }
 .diagram-zone{
 	width:95%;
@@ -66,8 +80,14 @@ canvas {display: block;}
 	height:100%;
 }
 
-
-
+.shapeTitle{
+	width:100%;
+	height:30px;
+	background-color:green;
+	color:white;
+	font-size:20px;
+	text-align:center;
+}
 
 
 .copyClipboard{
@@ -75,10 +95,11 @@ canvas {display: block;}
 }
 
 .diagramImage, .diagram-canvas{
- 	width:100%;
-	height:100%; 
+ 	width:auto;
+	height:auto;
 	z-index:100;
 }
+
 
 
 .cameraHelper li{
@@ -258,4 +279,44 @@ ul.cw-edit-property-options{
 
 ul.cw-edit-property-options li, ul.cw-edit-property-options input{
 	display: inline-block;
+}
+
+
+div.cw-canvas-header{
+	width:100%;
+	color:#004488;
+	border-bottom:2px solid #D1E8F5;
+	/*border-bottom:none;*/
+	height:14px;
+	font-size:12px;
+}
+
+div.cw-canvas-header a{
+	font-size:12px;
+	display: inline-block;
+	cursor:pointer;
+}
+
+div.cw-canvas-header a.selected{
+	font-weight:bold;
+}
+
+
+table.propertiesTable {
+	width:100%;
+}
+
+table.propertiesTable th{
+	width:30%;
+}
+
+table.propertiesTable td{
+	width:70%;
+}
+
+canvas.world-map{
+		border:2px solid #D1E8F5;
+		border-radius:5px;
+		moz-border-radius:5px;
+		webkit-border-radius:5px;	
 }

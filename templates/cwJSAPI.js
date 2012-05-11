@@ -34,10 +34,8 @@ cwAPI.createLinkForIndexView = function (view) {
 	return "index." + cwConfigs.SITE_LINK_EXTENTION + "?cwtype=index&cwview=" + view;
 };
 
-
-
 cwAPI.putPropertiesInTable = function (output, pName, displayName, object, propertyType, type) {
-	console.log(object);
+	//console.log(object);
 	var value = object.properties[pName];
 	if (!_.isUndefined(type)) {
 		value = value.substring(0, 10);
@@ -53,17 +51,17 @@ cwAPI.createTable = function (output, name, mainObject, drawItems) {
 };
 
 
-function getDiagram(dID, selectorID, callback) {
-	//console.log("GET DIAGRAM", dID, selectorID);
-	//$('#' + selectorID).append('<canvas class="diagram-canvas" id="' + selectorID + '-canvas"></canvas>')
+cwAPI.getDiagramPath = function(dID){
+	return cwConfigs.SITE_MEDIA_PATH + 'webdesigner/generated/diagram/json/diagram' + dID + '.' + cwConfigs.JSON_EXTENTION;
+}
+
+cwAPI.getDiagram = function(dID, selectorID, callback) {
 	$('#' + selectorID).html('');
 	var el = document.createElement('canvas');
 	el.id = selectorID + '-canvas';
 	$('#' + selectorID).append(el);
-	//$('#' + selectorID).height($(window).height() + "px");
 	$('#' + el.id).addClass("diagram-canvas");
-	$.getJSON(cwConfigs.SITE_MEDIA_PATH + 'webdesigner/generated/diagram/json/diagram' + dID + '.' + cwConfigs.JSON_EXTENTION, function (jsonDiagramFile) {
-		//console.log("get json");
+	$.getJSON(cwAPI.getDiagramPath(dID), function (jsonDiagramFile) {
 		var diagramCanvas = new DiagramCanvas(dID, jsonDiagramFile, selectorID);
 		if (!_.isUndefined(callback)) {
 			return callback(diagramCanvas);
@@ -220,44 +218,6 @@ cwAPI.setupLanguage = function (language, libPathFromMain) {
 		}
 	});
 };
-
-/*function doActionsForSingle()
-{
-	$('li.property-title').addClass('ui-corner-left ui-widget ui-widget-header');
-	$('li.property-value').addClass('ui-corner-right');
-	$('li.property-value').addClass('ui-widget ui-widget-content');		
-
-	$('ul.properties-zone-area')
-		.css('margin', '0px')
-		.css('padding', '0px');
-
-	$('ul.properties-zone-area li.property-box')
-		.css('width', '100%')
-		.css('display', 'inline-block')
-		.css('margin', '5px');
-
-	$('ul.property-details')
-		.css('margin', '0px')
-		.css('padding', '0px');
-
-	$('ul.properties-zone-area li.property-title')
-		.css('width', '20%')
-		.css('padding', '5px');
-	$('ul.properties-zone-area li.property-value')
-		.css('width', '70%')
-		.css('padding', '5px');
-
-	$('li.property-details')
-		.css('display', 'inline-block')
-		.css('vertical-align', 'top');
-
-	if ($.browser.msie && $.browser.version == 7){
-		$('li.property-box').css('width', '100%');
-		$('li.property-details').css('float', 'left');
-		$('ul.properties-zone-area').css('width', '100%');
-	}
-}*/
-
 
 
 function doLayoutsSpecialActionsLocal() {}
@@ -503,9 +463,9 @@ LayoutDataCenter.prototype.applyCSS = function () {
 
 
 cwAPI.transformTabToVertical = function (selectorID) {
-	$("#" + selectorID).tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
-	$("#" + selectorID + " li.tab-header").removeClass('ui-corner-top').addClass('ui-corner-left');
-	$("#" + selectorID + " .ui-tabs-panel").addClass('ui-widget ui-widget-content');
+	$(selectorID).tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+	$(selectorID + " li.tab-header").removeClass('ui-corner-top').addClass('ui-corner-left');
+	$(selectorID + " .ui-tabs-panel").addClass('ui-widget ui-widget-content');
 };
 
 

@@ -1,0 +1,31 @@
+li.application{
+  display:inline-block;
+  vertical-align:top;
+  width:150px;
+  margin:5px;
+  min-height:60px;
+  font-size:11px;
+  border:1px solid #E6E6FA;
+}
+
+div.application{
+  padding:5px;
+  text-align:center;
+  background-color: #E6E6FA;
+
+}
+
+div.application a{
+    color:#004488;
+}
+
+
+ul.location-flag{
+  margin:0px;
+  padding:0px;
+}
+li.location-flag{
+  display: inline-block;
+  margin:2px;
+  text-align:center;
+}

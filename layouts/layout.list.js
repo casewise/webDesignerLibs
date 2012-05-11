@@ -16,6 +16,7 @@ LayoutList.prototype.drawAssociations = function (output, _associationTitleText,
     //console.log('draw association _associationKey[', _associationKey, '] don\'t exists for ', _object);
     return;
   }
+ // console.log(_object.associations[_associationKey]);
   if (_object.associations[_associationKey].length > 0) {
     output.push("<ul class='association-link-box association-link-box-", this.css, " ", this.css, " ", this.css, "-", _object.object_id, "'>");
     _.each(_object.associations[_associationKey], function (_child) {

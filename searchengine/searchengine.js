@@ -124,9 +124,11 @@ function prepareSearch(viewName, JSONItems, searchEngine) {
   //console.log('prepare search', JSONItems);
 
   // if something has been typed 
-  $('#' + inputVar).keyup(function () {
+  $('#' + inputVar).keyup(function (e) {
     // get the typed value 
     _input_value = $(this).val();
+
+
 
     // clean the list of elements 
     $('#zone_' + viewName).html('');
@@ -137,6 +139,10 @@ function prepareSearch(viewName, JSONItems, searchEngine) {
       searchEngine.searchFunction(JSONItems.associations, false);
       return;
     }
+    if (e.keyCode === 8){
+      searchMemory.searchResultData = JSONItems;
+    }
+    
     _input_value = _input_value.replace(/ /g, ".*");
     output = [];
     if (searchMemory.searchResultData === null){

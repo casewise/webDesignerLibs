@@ -1,11 +1,12 @@
+/*global cwAPI :true*/
+
 var cwTabManager = {};
 // active the tabs
 cwTabManager.loadTab = function (tabID) {
 	var diagramID, designID, design;
 	$(tabID).find('div.diagram-zone').each(function (i, diagramZone) {
 		diagramID = $(diagramZone).attr('data-diagramid');
-		$(diagramZone).css('height', '400px');
-		getDiagram(diagramID, $(diagramZone).attr('id'), function () {});
+		cwAPI.getDiagram(diagramID, $(diagramZone).attr('id'), function () {});
 	});
 	$(tabID).find('div.diagram-designer-zone').each(function (i, diagramDesignerZone) {
 		$(diagramDesignerZone).addClass("property-box");
@@ -17,7 +18,7 @@ cwTabManager.loadTab = function (tabID) {
 
 	cwAPI.loadWorldMap($(tabID));
 
-/*	$(tabID).find('canvas.world-map').each(function (i, canvasWorld) {
+	/*	$(tabID).find('canvas.world-map').each(function (i, canvasWorld) {
 		var itemKey = $(canvasWorld).attr('data-itemkey');
 		var id = $(canvasWorld).attr('id');
 		var countries = $(canvasWorld).attr('data-countries');
@@ -43,46 +44,58 @@ cwTabManager.activeTab = function (selector) {
 		"show": function (event, ui) {
 			var tabID = ui.tab.hash;
 			cwTabManager.loadTab(tabID);
+			//var re = /#\w+$/;
+			//var url = document.location.toString();
+			//document.location.hash = ui.panel.id;
+/*			$('body').scrollTop({
+				"top": 0
+			});*/
+		},
+		"cookie": {
+			// store cookie for a day, without, it would be a session cookie
+			expires: 1
 		}
+	});
+	$(selector).bind('tabsshow', function (event, ui) {
+		//console.log('show', ui);
 	});
 
 
 	$(selector + " .ui-tabs-nav").removeClass('ui-widget-header');
 	cwTabManager.resizeTabContent(selector);
-	
-	// select the first tab
-	$(selector).tabs('select', 0);
+	//$(selector).tabs('select', 0);
 	// show default tab
 	var selectedTabID = $(selector + " .ui-tabs-selected a").attr('href');
 	cwTabManager.loadTab(selectedTabID);
-
+	
+	$(window).resize(function () {
+		cwTabManager.resizeTabContent(selector);
+	});
 };
 
-$(window).resize(function(){
-	cwTabManager.resizeTabContent("#tab");
-})
 
 cwTabManager.resizeTabContent = function (selector) {
-	var firstLi = $(selector + " .ui-tabs-nav li").first();
+	var firstLi, offset, leftMenuSize, maximumSize, sizeContent;
+	firstLi = $(selector + " .ui-tabs-nav li.tab-header").first();
 	if (firstLi.length > 0) {
-		var offset = firstLi.offset();
-		var leftMenuSize = offset.left + firstLi.width();
-		var maximumSize = $(window).width();
-		var sizeContent = maximumSize - leftMenuSize - 10 - 50 - 40;
+		offset = firstLi.offset();
+		leftMenuSize = offset.left + firstLi.width();
+		maximumSize = $(window).width();
+		sizeContent = maximumSize - leftMenuSize - 10 - 50 - 40;
+		//console.log(sizeContent);
 		$(selector + " .tab-content").css('width', sizeContent);
 	}
-
-}
+};
 
 
 
 // add a tab title
-cwTabManager.createTextTab = function (output, selector, name, icon) {
-	output.push('<li class="tab-header header-' + selector + '"><a href="#', selector, '"><span class="ui-icon ui-icon-', icon, '"></span>', name, '</a></li>');
+cwTabManager.createTextTab = function (output, selector, name, icon, tabID) {
+	output.push('<li class="', tabID, '-header tab-header header-' + selector + '"><a href="#', selector, '"><span class="ui-icon ui-icon-', icon, '"></span>', name, '</a></li>');
 };
 
 // create content for a tab
-cwTabManager.createTextTabContent = function (output, selector, content_callback, title) {
+cwTabManager.createTextTabContent = function (output, selector, content_callback) {
 	output.push('<div id="', selector, '" class="tab-content">');
 	content_callback(output);
 	output.push('</div>');
@@ -91,7 +104,7 @@ cwTabManager.createTextTabContent = function (output, selector, content_callback
 
 // create a diagram tab
 
-function createDiagramTab(output, mainItem, diagramCategory, savedDiagrams, tabName, activeItems) {
+/*function createDiagramTab(output, mainItem, diagramCategory, savedDiagrams, tabName, activeItems) {
 	$.each(mainItem.diagramsExploded, function (abbr, diagrams) {
 		$.each(diagrams, function (dKey, d) {
 			if (abbr === diagramCategory) {
@@ -116,4 +129,4 @@ function createDiagramTabContent(output, mainItem, diagramCategory) {
 			}
 		});
 	});
-}
+}*/

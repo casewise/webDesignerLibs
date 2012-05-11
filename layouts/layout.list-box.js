@@ -24,6 +24,7 @@ if (_.isUndefined(cwAPI)){
 }
 cwAPI.drawListBox = function (NextLayout, layout, output, _associationTitleText, _object, _associationKey, listBoxName, callback) {
   var l, targetObject;
+  //console.log("_object", _object);
   if (_.isUndefined(_object.associations[_associationKey])) {
     //console.log('draw association _associationKey[', _associationKey, '] don\'t exists for ', _object);
     return;

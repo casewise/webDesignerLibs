@@ -55,6 +55,9 @@ cwAPI.getQueryStringObject = function () {
 		//console.log(pageArguments);
 		_.each(pageArguments[1].split("&"), function (a) {
 			pageArgumentKeyAndValue = a.split('=');
+			if (pageArgumentKeyAndValue[1].indexOf('#') !== -1){
+				 pageArgumentKeyAndValue[1] =  pageArgumentKeyAndValue[1].split('#')[0];
+			}
 			pageArgumentsObject[pageArgumentKeyAndValue[0]] = pageArgumentKeyAndValue[1];
 		});
 	} else {
